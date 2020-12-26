@@ -12,6 +12,7 @@ A webgl2 renderer that builds on the Shipyard ECS ecosystem:
 [shipyard ECS](https://github.com/leudz/shipyard)
 -> [shipyard-hierarchy](https://github.com/dakom/shipyard-hierarchy) 
 -> [shipyard-scenegraph](https://github.com/dakom/shipyard-scenegraph)
+-> awsm_renderer (this)
 
 # Status
 
