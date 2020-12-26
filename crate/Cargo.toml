@@ -27,6 +27,7 @@ version = "0.3.46"
 features = [
     "console",
     "HtmlCanvasElement",
+    "WebGl2RenderingContext",
 ]
 [features]
 quiet = []

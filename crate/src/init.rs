@@ -19,22 +19,8 @@ use awsm_web::{
 };
 
 
-pub struct Renderer {
-    pub world: Rc<World>,
-    pub static_geometry: StaticGeometry,
-    pub(crate) resize_observer: ResizeObserver,
-    pub(crate) textures: Textures,
-}
-
-
-impl Drop for Renderer {
-    fn drop(&mut self) {
-        log::info!("renderer dropped!");
-    }
-}
-
 impl Renderer {
-    pub fn new(canvas:HtmlCanvasElement, world: Option<Rc<World>>) -> Self {
+    pub fn new(canvas:HtmlCanvasElement, config: Config, world: Option<Rc<World>>) -> Self {
 
         let world = world.unwrap_or_else(|| Rc::new(World::new()));
 
@@ -50,6 +36,8 @@ impl Renderer {
 
         let mut gl = WebGl2Renderer::new(gl).unwrap_throw();
         
+        gl.set_clear_color(config.clear_color.0, config.clear_color.1, config.clear_color.2, config.clear_color.3);
+
         // Static Geometry
         let static_geometry = StaticGeometry::new(&mut gl).unwrap_throw();
 
@@ -60,7 +48,7 @@ impl Renderer {
         // Resizing
         let world_clone = world.clone();
         let resize_observer = ResizeObserver::new(move || {
-            log::info!("resized!");
+            crate::view::resize::on_resize(&world_clone, &config); 
         });
         resize_observer.observe(&canvas);
 

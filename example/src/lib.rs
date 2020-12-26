@@ -1,3 +1,10 @@
+//see: https://github.com/rust-lang/cargo/issues/8010
+#![cfg_attr(feature = "quiet", allow(warnings))]
+
+mod ui;
+mod scene;
+mod utils;
+
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
 
@@ -25,4 +32,5 @@ cfg_if! {
 #[wasm_bindgen(start)]
 pub fn run() {
     setup();
+    dominator::append_dom(&dominator::body(), ui::app::render());
 }

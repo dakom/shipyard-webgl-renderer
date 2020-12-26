@@ -2,12 +2,15 @@
 #![cfg_attr(feature = "quiet", allow(warnings))]
 
 pub mod prelude;
+pub mod entity;
 
 mod geom;
+mod view;
+mod base;
+mod config;
 mod init;
 mod render;
 mod texture;
-mod sprite;
 mod primitive;
 mod material;
 
