@@ -20,9 +20,9 @@ pub fn create_sprite(renderer:&Renderer, texture_id:Id, parent: Option<EntityId>
     };
 
     let (entities, mut primitives, mut materials) 
-        = world.borrow::<(EntitiesViewMut, ViewMut<Primitive>, ViewMut<Material>)>()?;
+        = world.borrow::<(EntitiesViewMut, ViewMut<Mesh>, ViewMut<Material>)>()?;
 
-    let primitive = Primitive::Quad(renderer.static_geometry.unit_quad.clone());
+    let primitive = Mesh::Quad(renderer.geometry.unit_quad.clone());
 
     /*Rough next steps:
         * Statically defined vertex shader

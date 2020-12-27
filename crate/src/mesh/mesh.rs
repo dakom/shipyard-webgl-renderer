@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use awsm_web::webgl::Id;
-use crate::geom::quad::Quad;
+use super::quad::Quad;
 
-pub enum Primitive {
+pub enum Mesh {
     Quad(Quad)
 }

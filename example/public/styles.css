@@ -67,5 +67,5 @@ aside > .border-drag {
   border-left: 1px dashed white;
   width: 10px;
   height: 100%;
-  cursor: move;
+  cursor: col-resize;
 }

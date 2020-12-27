@@ -3,14 +3,13 @@
 
 pub mod prelude;
 pub mod entity;
+pub mod mesh;
+pub mod system;
+pub(crate) mod shader;
 
-mod geom;
 mod view;
 mod base;
 mod config;
-mod init;
-mod render;
 mod texture;
-mod primitive;
 mod material;
 
