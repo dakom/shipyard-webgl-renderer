@@ -10,12 +10,11 @@ use awsm_web::webgl::{
 
 #[derive(Debug, Clone)]
 pub struct Quad {
-    vertex_buffer_id: Id
 }
 
 
 impl Quad {
-    pub fn new_unit(gl:&mut WebGl2Renderer) -> Result<Self, awsm_web::errors::Error> {
+    pub fn new_unit(gl:&mut WebGl2Renderer) -> Result<Id, awsm_web::errors::Error> {
 
         const QUAD_GEOM_UNIT: [f32; 8] = [
             0.0, 1.0, // top-left
@@ -26,8 +25,6 @@ impl Quad {
 
         let id = gl.create_buffer()?;
 
-        //TODO - change to just upload_buffer
-        //Not to bind to shader program
         gl.upload_buffer(
             id,
             BufferData::new(
@@ -37,8 +34,6 @@ impl Quad {
             )
         )?;
 
-        Ok(Quad {
-            vertex_buffer_id: id
-        })
+        Ok(id)
     }
 }

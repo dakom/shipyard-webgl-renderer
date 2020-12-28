@@ -2,7 +2,7 @@ use web_sys::HtmlCanvasElement;
 use wasm_bindgen::prelude::*;
 use awsm_renderer::{
     prelude::*,
-    entity::sprite::create_sprite
+    workload,
 };
 use wasm_bindgen_futures::spawn_local;
 use std::rc::Rc;
@@ -26,22 +26,27 @@ impl Scene {
     cfg_if::cfg_if! {
         if #[cfg(feature = "dev")] {
             fn first_run(&self) {
-                self.add_sprite();
-                self.renderer.render();
+                self.load_sprite();
+                let world = &self.renderer.world;
+                world.run_workload(workload::RENDER);
             }
         } else {
             fn first_run(&self) {
-                self.renderer.render();
+                let world = &self.renderer.world;
+                world.run_workload(workload::RENDER);
             }
         }
     }
 
-    pub fn add_sprite(&self) {
+    pub fn load_sprite(&self) {
         let renderer = self.renderer.clone();
         spawn_local(async move {
             let texture_id = renderer.load_texture(media_url("smiley.svg")).await.unwrap_throw();
-            let entity_id = create_sprite(&renderer, texture_id, None).unwrap_throw();
-            log::info!("Sprite Id: {:?}", entity_id);
+            let mesh = renderer.meshes.new_sprite();
+            let material = renderer.materials.new_sprite(texture_id);
+            let entity_id = renderer.spawn_entity(None, mesh, material).unwrap_throw();
+            let world = &renderer.world;
+            world.run_workload(workload::RENDER);
         });
     }
 }

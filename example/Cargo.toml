@@ -13,7 +13,7 @@ opt-level = 's'
 [dependencies]
 # Awsm
 awsm_renderer = { path = "../crate"}
-awsm_web = { version = "0.6.7", features = ["tick", "webgl", "loaders", "audio", "serde_iso"], default-features = false }
+awsm_web = { version = "0.8.0", features = ["tick", "webgl", "loaders", "audio", "serde_iso"], default-features = false }
 nalgebra = { version = "0.23.2", default-features = false, features = ["libm"] }
 
 # Setup / Logging

@@ -22,7 +22,7 @@ fn sprite_button(state:Rc<State>) -> Dom {
         .text("Add Sprite")
         .event(clone!(state => move |evt:events::Click| {
             if let Some(scene) = state.scene.borrow_mut().as_mut() {
-                scene.add_sprite();
+                scene.load_sprite();
             }
         }))
     })

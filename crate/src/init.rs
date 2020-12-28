@@ -1,8 +1,6 @@
-
 use crate::prelude::*;
-use crate::mesh::init::StaticGeometry;
-use crate::shader::init::StaticShaders;
 use std::rc::Rc;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use shipyard::*;
 use shipyard_scenegraph::prelude::*;
@@ -16,23 +14,11 @@ use awsm_web::{
     }
 };
 
-pub type Gl<'a> = NonSendSync<UniqueView<'a, WebGl2Renderer>>;
-pub type GlMut<'a> = NonSendSync<UniqueViewMut<'a, WebGl2Renderer>>;
-
-pub struct Renderer {
-    pub world: Rc<World>,
-    pub geometry: StaticGeometry,
-    pub shaders: StaticShaders,
-    #[allow(dead_code)]
-    pub(crate) resize_observer: ResizeObserver,
-    pub(crate) textures: Textures,
-}
 
 impl Renderer {
     pub fn new(canvas:HtmlCanvasElement, config: Config, world: Option<Rc<World>>) -> Self {
 
         let world = world.unwrap_or_else(|| Rc::new(World::new()));
-
 
         // create scenegraph
         init_scenegraph(&world);
@@ -47,15 +33,14 @@ impl Renderer {
         
         gl.set_clear_color(config.clear_color.0, config.clear_color.1, config.clear_color.2, config.clear_color.3);
 
-        // Static Geometry
-        let geometry = StaticGeometry::new(&mut gl).unwrap_throw();
+        // Meshes 
+        let meshes = Meshes::new(&mut gl).unwrap_throw();
 
-        // Static Shaders 
-        let shaders = StaticShaders::new(&mut gl).unwrap_throw();
+        // Materials 
+        let materials = Materials::new(&mut gl).unwrap();
 
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();
-
 
         // Resizing
         let world_clone = world.clone();
@@ -64,12 +49,15 @@ impl Renderer {
         });
         resize_observer.observe(&canvas);
 
+        //Register workloads
+        crate::workload::init(&world);
+
         // Create self
         Self {
             resize_observer,
             world,
-            geometry,
-            shaders,
+            meshes,
+            materials,
             textures: Textures::new()
         }
     }

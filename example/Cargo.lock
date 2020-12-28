@@ -41,9 +41,9 @@ dependencies = [
 
 [[package]]
 name = "awsm_web"
-version = "0.6.7"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4968bd11351d225a062fbffefb3ab4a280aa1346a42bcd6e2c08382ed88158f0"
+checksum = "1b9c51eed0e580c890714d055d009c67f42a1a550fc66695053dc28cd866a147"
 dependencies = [
  "beach_map",
  "discard",
@@ -685,9 +685,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.60"
+version = "1.0.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1500e84d27fe482ed1dc791a56eddc2f230046a040fa908c08bda1d9fb615779"
+checksum = "4fceb2595057b6891a4ee808f70054bd2d12f0e97f1cbb78689b59f676df325a"
 dependencies = [
  "itoa",
  "ryu",

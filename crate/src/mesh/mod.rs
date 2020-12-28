@@ -1,3 +1,6 @@
-pub mod quad;
-pub(crate) mod mesh;
-pub(crate) mod init;
+pub mod geom;
+pub mod meshes;
+
+mod mesh;
+
+pub use mesh::*;

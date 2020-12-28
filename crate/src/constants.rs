@@ -1,0 +1,1 @@
+pub const ATTRIBUTE_GEOM_VERTEX:u32 = 0;
