@@ -15,7 +15,7 @@ export default {
         rust({
             serverPath: "wasm/",
             debug: true,
-            watchPatterns: ["src/**", "../crate/src/**", "../../shipyard-scenegraph/src/**", "../../shipyard-hierarchy/src/**"],
+            watchPatterns: ["src/**", "../crate/src/**", "../../awsm-web/crate/src/**", "../../shipyard-scenegraph/src/**", "../../shipyard-hierarchy/src/**"],
             cargoArgs: ["--features", "dev"],
             watch: true,
         }),

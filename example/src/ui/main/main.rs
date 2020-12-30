@@ -18,7 +18,7 @@ impl Main {
             .child(
                 html!("canvas" => HtmlCanvasElement, {
                     .after_inserted(clone!(state => move |canvas| {
-                        *state.scene.borrow_mut() = Some(Scene::new(canvas));
+                        state.canvas_ready(canvas);
                     }))
                 })
             )

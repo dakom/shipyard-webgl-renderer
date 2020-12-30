@@ -41,9 +41,9 @@ dependencies = [
 
 [[package]]
 name = "awsm_web"
-version = "0.8.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b9c51eed0e580c890714d055d009c67f42a1a550fc66695053dc28cd866a147"
+checksum = "6f111a28c550caf2eaed2323eab46409de471128a4dec9e2911c6fb4ea5e74f2"
 dependencies = [
  "beach_map",
  "discard",
@@ -108,6 +108,8 @@ dependencies = [
  "js-sys",
  "log",
  "nalgebra",
+ "shipyard",
+ "shipyard_scenegraph",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-logger",
@@ -331,9 +333,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "0.4.6"
+version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc6f3ad7b9d11a0c00842ff8de1b60ee58661048eb8049ed33c73594f359d7e6"
+checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 
 [[package]]
 name = "js-sys"
@@ -403,9 +405,9 @@ checksum = "8452105ba047068f40ff7093dd1d9da90898e63dd61736462e9cdda6a90ad3c3"
 
 [[package]]
 name = "nalgebra"
-version = "0.23.2"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9bd52e9c9922d5702d5c2a105ceacc3c1206e781d3d130f4d2b7ad5f43c144b"
+checksum = "77fea728d5bead12fae18a36258f43f397c20850925cd84af2caf9b8fc7f5d49"
 dependencies = [
  "approx",
  "generic-array",
@@ -421,9 +423,9 @@ dependencies = [
 
 [[package]]
 name = "nalgebra-glm"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6eb8dc415da7b28069a4c775a0529d310b0ecc5c91b4b2b804e6464854d0bab2"
+checksum = "9b5f4543e9d67ef672028a9baf4c31dbb64a53f659facf17db2d89dab7e2c8f2"
 dependencies = [
  "approx",
  "nalgebra",
@@ -697,7 +699,7 @@ dependencies = [
 [[package]]
 name = "shipyard"
 version = "0.4.1"
-source = "git+https://github.com/leudz/shipyard?branch=no-panic-feature#fe47390f8f115c810980b3aa38334c095b7160b5"
+source = "git+https://github.com/leudz/shipyard?branch=no-panic-feature#b02f02151eb8278afc87383a121d1cb4422b4713"
 dependencies = [
  "hashbrown",
  "indexmap",
@@ -714,8 +716,8 @@ dependencies = [
 
 [[package]]
 name = "shipyard_scenegraph"
-version = "0.4.0"
-source = "git+https://github.com/dakom/shipyard-scenegraph#37b598893159a90aea9bfad2268b0d510b5b85ae"
+version = "0.4.1"
+source = "git+https://github.com/dakom/shipyard-scenegraph#2a5d18130bc9efb11402e8aeb506c2810fca37ae"
 dependencies = [
  "cfg-if 0.1.10",
  "nalgebra",
@@ -750,9 +752,9 @@ checksum = "ae524f056d7d770e174287294f562e95044c68e88dec909a00d2094805db9d75"
 
 [[package]]
 name = "syn"
-version = "1.0.55"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a571a711dddd09019ccc628e1b17fe87c59b09d513c06c026877aa708334f37a"
+checksum = "a9802ddde94170d186eeee5005b798d9c159fa970403f1be19976d0cfb939b72"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -761,18 +763,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.22"
+version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e9ae34b84616eedaaf1e9dd6026dbe00dcafa92aa0c8077cb69df1fcfe5e53e"
+checksum = "76cc616c6abf8c8928e2fdcc0dbfab37175edd8fb49a4641066ad1364fdab146"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.22"
+version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ba20f23e85b10754cd195504aebf6a27e2e6cbe28c17778a0c930724628dd56"
+checksum = "9be73a2caec27583d0046ef3796c3794f868a5bc813db689eed00c7631275cd1"
 dependencies = [
  "proc-macro2",
  "quote",

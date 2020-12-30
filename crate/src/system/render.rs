@@ -7,7 +7,10 @@ use web_sys::HtmlCanvasElement;
 use awsm_web::webgl::{ WebGl2Renderer, BufferMask, };
 
 pub fn render(
-    mut gl:GlMut, 
+    mut gl:GlViewMut,
+    mut camera_buffers: CameraBuffersViewMut,
+    active_camera: ActiveCameraView,
+    cameras:View<Camera>, 
     meshes:View<Mesh>, 
     materials:View<Material>, 
     world_transforms: View<WorldTransform>,
@@ -17,13 +20,15 @@ pub fn render(
         BufferMask::DepthBufferBit,
     ]);
 
-    /*
+    //Set uniform buffer objects from active camera
 
-    //Should be UBO?
-    webgl.upload_uniform_mat_4("u_camera", &camera_mat.as_slice()).unwrap_throw();
-    */
+    if let Some(entity) = active_camera.entity {
+        if let Ok((camera, view)) = (&cameras, &world_transforms).get(entity) {
+            camera_buffers.update_ubo(&mut gl, camera, view).unwrap_throw();
+        } 
+    }
 
-    let mut model_mat:[f32;16] = [0.0;16];
+    let mut world_transform_buf:[f32;16] = [0.0;16];
 
     for (mesh, 
          material, 
@@ -35,12 +40,11 @@ pub fn render(
          &world_transforms,
         ).iter() {
 
-        log::info!("rendering something!");
-        world_transform.write_to_vf32(&mut model_mat);
+        world_transform.write_to_vf32(&mut world_transform_buf);
 
         gl.activate_program(material.get_program_id()).unwrap_throw(); 
         gl.activate_vertex_array(mesh.get_vao_id()).unwrap_throw();
-        material.set_uniforms_and_samplers(&mut gl, &model_mat).unwrap_throw();
+        material.set_uniforms_and_samplers(&mut gl, &world_transform_buf).unwrap_throw();
 
         mesh.draw(&gl);
     }

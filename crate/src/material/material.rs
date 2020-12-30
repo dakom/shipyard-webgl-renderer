@@ -23,8 +23,9 @@ impl Material {
     pub fn set_uniforms_and_samplers(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
         match self {
             Self::Sprite(mat) => {
+                gl.upload_uniform_mat_4_name("u_model", &world_transform)?;
                 mat.set_uniforms_and_samplers(gl)?;
-                gl.upload_uniform_mat_4("u_model", &world_transform)?;
+                
             }
         }
 
@@ -42,7 +43,7 @@ pub struct Materials {
 
 
 pub struct VertexShaderIds {
-    pub unit: Id,
+    pub quad_unit: Id,
 }
 
 pub struct FragmentShaderIds {
@@ -69,7 +70,7 @@ impl Materials {
 impl VertexShaderIds { 
     pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
         Ok(Self {
-            unit: gl.compile_shader(include_str!("./vertex/unit.glsl"), ShaderType::Vertex)?
+            quad_unit: gl.compile_shader(include_str!("./vertex/quad-unit.glsl"), ShaderType::Vertex)?
         })
     }
 }

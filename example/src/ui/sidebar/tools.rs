@@ -3,6 +3,10 @@ use futures_signals::signal::{Mutable, SignalExt, Signal};
 use std::rc::Rc;
 use crate::ui::state::State;
 use super::Sidebar;
+use crate::scene::{
+    Scene,
+    entities::*
+};
 
 pub struct Tools {
 }
@@ -22,7 +26,7 @@ fn sprite_button(state:Rc<State>) -> Dom {
         .text("Add Sprite")
         .event(clone!(state => move |evt:events::Click| {
             if let Some(scene) = state.scene.borrow_mut().as_mut() {
-                scene.load_sprite();
+                sprite::load(scene.clone());
             }
         }))
     })

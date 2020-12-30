@@ -13,8 +13,9 @@ keywords = ["webgl", "renderer", "3d", "graphics", "gamedev"]
 [dependencies]
 shipyard = { git = "https://github.com/leudz/shipyard", branch = "no-panic-feature", features = ["non_send", "non_sync", "wasm"], default-features = false }
 shipyard_scenegraph = { git = "https://github.com/dakom/shipyard-scenegraph", features = ["non_send", "non_sync", "nalgebra_math", "wasm"], default-features = false}
-awsm_web = { version = "0.8.0", features = ["webgl", "loaders", "serde_iso", "dom"], default-features = false }
-nalgebra-glm = "0.9.0"
+awsm_web = { version = "0.12.0", features = ["webgl", "loaders", "serde_iso", "dom"], default-features = false }
+# awsm_web = { path = "../../awsm-web/crate", features = ["webgl", "loaders", "serde_iso", "dom"], default-features = false }
+nalgebra-glm = "0.10.0"
 log = "0.4.11"
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
@@ -28,6 +29,8 @@ features = [
     "console",
     "HtmlCanvasElement",
     "WebGl2RenderingContext",
+    "DomRect", 
+    "Element",
 ]
 [features]
 quiet = []

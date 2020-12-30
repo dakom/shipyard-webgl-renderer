@@ -9,6 +9,7 @@ use super::{
     border::Border,
     tools::Tools
 };
+use wasm_bindgen::JsCast;
 
 const INITIAL_WIDTH:i32 = 300;
 
@@ -19,7 +20,7 @@ pub struct Sidebar {
 
 impl Sidebar {
     pub fn render(state:Rc<State>) -> Dom {
-        let _self = Rc::new(Self::new(state));
+        let _self = Rc::new(Self::new(state.clone()));
 
         html!("aside", {
             .style_signal("width", _self.width_signal())
@@ -33,6 +34,7 @@ impl Sidebar {
                         Tools::render(_self.clone()),
                     ])
                 }),
+
                 Border::render(_self.clone())
             ])
         })

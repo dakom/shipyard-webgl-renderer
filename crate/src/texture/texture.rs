@@ -22,33 +22,40 @@ use awsm_web::{
     }
 };
 
+#[derive(Debug, Clone)]
+pub struct TextureInfo {
+    pub id: Id,
+    pub width: u32,
+    pub height: u32 
+}
+
 pub struct Textures {
-    pub id_cache: RefCell<HashMap<String, Id>>,
+    pub cache: RefCell<HashMap<String, TextureInfo>>,
 }
 
 impl Textures {
     pub fn new() -> Self {
         Self {
-            id_cache: RefCell::new(HashMap::new())
+            cache: RefCell::new(HashMap::new())
         }
     }
 
-    pub fn get_id(&self, url:&str) -> Option<Id> {
-        self.id_cache.borrow().get(url).copied()
+    pub fn get(&self, url:&str) -> Option<TextureInfo> {
+        self.cache.borrow().get(url).cloned()
     }
 
-    pub fn set_id(&self, url:String, id:Id) {
-        self.id_cache.borrow_mut().insert(url, id);
+    pub fn set(&self, url:String, info: TextureInfo) {
+        self.cache.borrow_mut().insert(url, info);
     }
 }
 
 impl Renderer {
-    pub async fn load_texture(&self, url:String) -> Result<Id, awsm_web::errors::Error> {
-        match self.textures.get_id(&url) {
-            Some(id) => Ok(id),
+    pub async fn load_texture(&self, url:String) -> Result<TextureInfo, awsm_web::errors::Error> {
+        match self.textures.get(&url) {
+            Some(info) => Ok(info),
             None => {
                 let img = loaders::image::load(url.clone()).await?;
-                let mut webgl = self.world.borrow::<GlMut>().unwrap();
+                let mut webgl = self.world.borrow::<GlViewMut>().unwrap();
                 let id = webgl.create_texture()?;
                 webgl.assign_simple_texture(
                     id,
@@ -59,10 +66,15 @@ impl Renderer {
                     },
                     &WebGlTextureSource::ImageElement(&img),
                 )?;
+                let info = TextureInfo {
+                    id,
+                    width: img.natural_width(),
+                    height: img.natural_height(),
+                };
 
-                self.textures.set_id(url, id);
+                self.textures.set(url, info.clone());
                 
-                Ok(id)
+                Ok(info)
             }
         }
     }
