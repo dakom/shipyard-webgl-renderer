@@ -7,12 +7,18 @@
 
 # What is it?
 
-A webgl2 renderer that builds on the Shipyard ECS ecosystem:
+A webgl2 renderer that builds on _awsm-web_ and _Shipyard ECS_:
 
-[shipyard ECS](https://github.com/leudz/shipyard)
--> [shipyard-hierarchy](https://github.com/dakom/shipyard-hierarchy) 
--> [shipyard-scenegraph](https://github.com/dakom/shipyard-scenegraph)
--> awsm_renderer (this)
+### Dependency stack
+| Web | ECS |
+| ----- | ---- |
+| [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) | [shipyard](https://github.com/leudz/shipyard) |
+| [awsm_web](https://github.com/dakom/awsm-web) | [shipyard-hierarchy](https://github.com/dakom/shipyard-hierarchy) |
+| | [shipyard-scenegraph](https://github.com/dakom/shipyard-scenegraph) |
+
+
+The example additionally uses [Dominator](https://github.com/Pauan/rust-dominator) to tie it all together with a DOM-based UI
+
 
 # Status
 
