@@ -5,8 +5,9 @@ use shipyard::*;
 use shipyard_scenegraph::prelude::*;
 use web_sys::HtmlCanvasElement;
 use awsm_web::webgl::{ WebGl2Renderer, BufferMask, };
+use super::forward::render_forward;
 
-pub fn render(
+pub fn render_sys(
     mut gl:GlViewMut,
     mut camera_buffers: CameraBuffersViewMut,
     active_camera: ActiveCameraView,
@@ -28,24 +29,6 @@ pub fn render(
         } 
     }
 
-    let mut world_transform_buf:[f32;16] = [0.0;16];
+    render_forward(gl, meshes, materials, world_transforms);
 
-    for (mesh, 
-         material, 
-         world_transform,
-        ) 
-        in 
-        (&meshes, 
-         &materials, 
-         &world_transforms,
-        ).iter() {
-
-        world_transform.write_to_vf32(&mut world_transform_buf);
-
-        gl.activate_program(material.get_program_id()).unwrap_throw(); 
-        gl.activate_vertex_array(mesh.get_vao_id()).unwrap_throw();
-        material.set_uniforms_and_samplers(&mut gl, &world_transform_buf).unwrap_throw();
-
-        mesh.draw(&gl);
-    }
 }

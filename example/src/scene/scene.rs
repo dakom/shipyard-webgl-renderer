@@ -49,7 +49,8 @@ impl Scene {
     cfg_if::cfg_if! {
         if #[cfg(feature = "dev")] {
             fn first_run(_self: Rc<Self>) {
-                super::entities::sprite::load(_self);
+                super::entities::sprite::load(_self.clone());
+                super::entities::cube::load(_self.clone());
             }
         } else {
             fn first_run(_self: Rc<Self>) {

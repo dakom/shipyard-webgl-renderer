@@ -3,71 +3,38 @@ use awsm_web::{
     webgl::{Id, WebGl2Renderer},
     errors::Error
 };
-use super::geom::*;
 use super::meshes::*;
 
-pub trait BaseMesh {
-    fn create_vao_id(gl:&mut WebGl2Renderer, raw_data_ids:&RawDataIds) -> Result<Id, Error>;
-    fn get_vao_id(&self) -> Id;
-    fn draw(&self, gl:&WebGl2Renderer);
-}
+pub type VaoId = Id;
 
 pub enum Mesh {
-    Sprite(SpriteMesh)
+    UnitQuad(UnitQuadMesh),
+    UnitCube(UnitCubeMesh)
 }
-
-impl Mesh {
-    pub fn get_vao_id(&self) -> Id {
-        match self {
-            Self::Sprite(mesh) => mesh.get_vao_id()
-        }
-    }
-    pub fn draw(&self, gl:&WebGl2Renderer) {
-        match self {
-            Self::Sprite(mesh) => mesh.draw(gl)
-        }
-    }
-}
-
 
 //Not supporting dynamic attributes for now
-pub struct Meshes {
-    pub raw_data_ids: RawDataIds,
-    pub vao_ids: VaoIds,
+pub struct MeshCache {
+    pub unit_quad: UnitQuadMesh,
+    pub unit_cube: UnitCubeMesh
 }
 
-pub struct RawDataIds {
-    pub unit_quad_geom: Id,
-}
-
-pub struct VaoIds {
-    pub sprite: Id,
-}
-
-
-impl Meshes {
-    pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
-        let raw_data_ids = RawDataIds::new(gl)?;
-        let vao_ids = VaoIds::new(gl, &raw_data_ids)?;
-        Ok(Self {
-            vao_ids,
-            raw_data_ids,
-        })
+impl MeshCache {
+    pub fn init(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
+        let unit_quad = UnitQuadMesh::new(gl)?;
+        let unit_cube = UnitCubeMesh::new(gl)?;
+        Ok(
+            Self { 
+                unit_quad,
+                unit_cube
+            }
+        )
     }
-}
 
-impl RawDataIds { 
-    pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
-        Ok(Self {
-            unit_quad_geom: Quad::new_unit(gl)? 
-        })
+    pub fn new_unit_quad(&self) -> Mesh {
+        Mesh::UnitQuad(self.unit_quad.clone())
     }
-}
 
-impl VaoIds { 
-    pub fn new(gl:&mut WebGl2Renderer, raw_data_ids: &RawDataIds) -> Result<Self, Error> {
-        Ok(Self {
-            sprite: SpriteMesh::create_vao_id(gl, raw_data_ids)?
-        })
+    pub fn new_unit_cube(&self) -> Mesh {
+        Mesh::UnitCube(self.unit_cube.clone())
     }
 }

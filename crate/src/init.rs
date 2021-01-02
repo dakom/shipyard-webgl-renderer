@@ -42,10 +42,10 @@ impl Renderer {
         gl.set_clear_color(config.clear_color.0, config.clear_color.1, config.clear_color.2, config.clear_color.3);
 
         // Meshes 
-        let meshes = Meshes::new(&mut gl).unwrap_throw();
+        let meshes = MeshCache::init(&mut gl).unwrap_throw();
 
         // Materials 
-        let materials = Materials::new(&mut gl).unwrap();
+        let materials = MaterialCache::init(&mut gl).unwrap();
 
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();

@@ -8,12 +8,10 @@ use wasm_bindgen_futures::spawn_local;
 
 pub fn load(scene: Rc<Scene>) {
     spawn_local(async move {
-        let renderer = &scene.renderer;
 
-        let texture = renderer.load_texture(media_url("smiley.svg")).await.unwrap_throw();
-        log::info!("{:?}", texture);
-        let mesh = renderer.meshes.new_unit_quad();
-        let material = renderer.materials.new_sprite(texture);
+        let renderer = &scene.renderer;
+        let mesh = renderer.meshes.new_unit_cube();
+        let material = renderer.materials.new_colored_cube((1.0, 0.0, 0.0, 1.0));
         renderer.spawn_mesh_material(None, mesh, material).unwrap_throw();
     });
 }

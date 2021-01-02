@@ -1,2 +1,5 @@
-mod sprite;
-pub use sprite::*;
+mod quad;
+pub use quad::*;
+
+mod cube;
+pub use cube::*;

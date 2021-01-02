@@ -1,4 +1,3 @@
-pub mod geom;
 pub mod meshes;
 
 mod mesh;

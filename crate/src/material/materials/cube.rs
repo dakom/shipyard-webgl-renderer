@@ -4,18 +4,19 @@ use awsm_web::{
     errors::Error
 };
 
-pub struct SpriteMaterial {
+pub struct ColoredCubeMaterial {
     pub program_id: Id,
-    pub texture: TextureInfo, 
+    pub color: (f32, f32, f32, f32), 
 }
 
-impl SpriteMaterial {
+impl ColoredCubeMaterial {
     pub fn draw(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
 
         gl.activate_program(self.program_id)?; 
+        gl.upload_uniform_fvals_4_name("u_color", (self.color.0, self.color.1, self.color.2, self.color.3))?;
+        gl.upload_uniform_fvals_3_name("u_cube_scaler", (100.0, 100.0, 100.0))?;
         gl.upload_uniform_mat_4_name("u_model", &world_transform)?;
-        gl.upload_uniform_fvals_2_name("u_quad_scaler", (self.texture.width as f32, self.texture.height as f32))?;
-        gl.activate_texture_for_sampler_index(self.texture.id, 0)?;
         Ok(())
     }
 }
+

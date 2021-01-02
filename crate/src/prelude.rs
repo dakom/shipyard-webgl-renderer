@@ -4,6 +4,7 @@ pub use crate::texture::*;
 pub use crate::config::*;
 pub use crate::constants::*;
 pub use crate::view::*;
+pub use crate::draw::*;
 pub use awsm_web::webgl::ResizeStrategy;
 
 //use crate::mesh::init::StaticGeometry;
@@ -19,8 +20,8 @@ pub type GlViewMut<'a> = NonSendSync<UniqueViewMut<'a, WebGl2Renderer>>;
 
 pub struct Renderer {
     pub world: Rc<World>,
-    pub meshes: Meshes,
-    pub materials: Materials,
+    pub meshes: MeshCache,
+    pub materials: MaterialCache,
     pub(crate) textures: Textures,
 }
 

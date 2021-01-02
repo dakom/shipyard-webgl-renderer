@@ -12,3 +12,4 @@ pub mod system;
 pub mod view;
 pub mod workload;
 pub mod constants;
+pub mod draw;
