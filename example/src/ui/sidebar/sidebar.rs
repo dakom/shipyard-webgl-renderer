@@ -7,7 +7,8 @@ use futures_signals::signal::{Mutable, SignalExt, Signal};
 use crate::ui::state::State;
 use super::{
     border::Border,
-    tools::Tools
+    tools::Tools,
+    help::Help,
 };
 use wasm_bindgen::JsCast;
 
@@ -28,6 +29,7 @@ impl Sidebar {
                 html!("div", {
                     .class("contents")
                     .children(vec![
+                        Help::render(_self.clone()),
                         html!("header", {
                             .text("Tools")
                         }),

@@ -1,5 +1,9 @@
 pub const ATTRIBUTE_VERTEX:u32 = 0;
 pub const ATTRIBUTE_NORMAL:u32 = 1;
 pub const ATTRIBUTE_UV:u32 = 2;
+pub const ATTRIBUTE_FACE_INDEX:u32 = 3;
 
 pub const UBO_CAMERA:u32 = 0;
+
+pub const DEFAULT_ARCBALL_FAR_PLANE:f64 = 10_000.0;
+pub const DEFAULT_SCREEN_STATIC_FAR_PLANE:f64 = 10_000.0;

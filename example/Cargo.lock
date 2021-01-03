@@ -26,8 +26,10 @@ name = "awsm_renderer"
 version = "0.0.1"
 dependencies = [
  "awsm_web",
+ "gloo-events",
  "js-sys",
  "log",
+ "nalgebra",
  "nalgebra-glm",
  "serde",
  "serde-wasm-bindgen",
@@ -41,9 +43,9 @@ dependencies = [
 
 [[package]]
 name = "awsm_web"
-version = "0.12.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f111a28c550caf2eaed2323eab46409de471128a4dec9e2911c6fb4ea5e74f2"
+checksum = "5fcc594429fce9922d8fecba209d84b2badd551e282c5d4794b63fb61a903693"
 dependencies = [
  "beach_map",
  "discard",

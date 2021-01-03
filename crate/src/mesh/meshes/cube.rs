@@ -47,6 +47,11 @@ impl UnitCubeMesh {
                     buffer_id: buffers.uvs_id,
                     opts: AttributeOptions::new(2, DataType::Float),
                 },
+                VertexArray {
+                    attribute: NameOrLoc::Loc(ATTRIBUTE_FACE_INDEX),
+                    buffer_id: buffers.face_index_id,
+                    opts: AttributeOptions::new_int(1, DataType::UnsignedInt),
+                },
             ],
         )?;
 
@@ -67,6 +72,7 @@ pub struct UnitCubeBuffers {
     pub vertices_id: Id,
     pub normals_id: Id,
     pub uvs_id: Id,
+    pub face_index_id: Id,
     pub elements_id: Id,
 }
 
@@ -217,6 +223,26 @@ impl UnitCubeBuffers {
             ),
         )?;
 
+        const FACE_INDEX: [u32; 24] = [
+            0,0,0,0,
+            1,1,1,1,
+            2,2,2,2,
+            3,3,3,3,
+            4,4,4,4,
+            5,5,5,5,
+        ];
+
+        let face_index_id = gl.create_buffer()?;
+
+        gl.upload_buffer(
+            face_index_id,
+            BufferData::new(
+                &FACE_INDEX,
+                BufferTarget::ArrayBuffer,
+                BufferUsage::StaticDraw,
+            )
+        )?;
+
         const ELEMENTS: [u8; 36] = [
             0, 1, 2, 0, 2, 3, // front
             4, 5, 6, 4, 6, 7, // right
@@ -241,6 +267,7 @@ impl UnitCubeBuffers {
             vertices_id,
             normals_id,
             uvs_id,
+            face_index_id,
             elements_id
         })
     }

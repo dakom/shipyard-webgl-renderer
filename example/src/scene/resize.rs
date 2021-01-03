@@ -3,7 +3,8 @@ use awsm_renderer::prelude::*;
 use shipyard::*;
 use wasm_bindgen::prelude::*;
 use std::rc::Rc;
-use super::{Scene, camera::get_camera_projection};
+use super::Scene;
+use awsm_renderer::camera::arc_ball::ArcBall;
 
 pub fn observe_resize(scene:Rc<Scene>) -> ResizeObserver {
 
@@ -17,13 +18,11 @@ pub fn observe_resize(scene:Rc<Scene>) -> ResizeObserver {
             //update renderer - this will set canvas.width/canvas.height
             renderer.resize(ResizeStrategy::All(width, height));
 
-            //update camera
-            world.run(|active_camera: ActiveCameraView, mut cameras:ViewMut<Camera>| {
-                if let Some(entity) = active_camera.entity {
-                    if let Ok(mut camera) = (&mut cameras).get(entity) {
-                        camera.projection = get_camera_projection(width as f64, height as f64);
-                    } 
-                }
+            //update cameras
+            world.run(|mut cameras:ViewMut<ArcBall>| {
+                (&mut cameras).iter().for_each(|mut camera| {
+                    camera.update_viewport(width, height);
+                });
             }).unwrap_throw();
         })
     };

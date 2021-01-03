@@ -11,7 +11,7 @@ pub fn render_forward(
     meshes:View<Mesh>, 
     materials:View<Material>, 
     world_transforms: View<WorldTransform>,
-) {
+) -> Result<(), awsm_web::errors::Error> {
 
     let mut world_transform_buf:[f32;16] = [0.0;16];
 
@@ -26,6 +26,21 @@ pub fn render_forward(
         ).iter() {
 
         world_transform.write_to_vf32(&mut world_transform_buf);
-        (mesh, material).draw(&mut gl, &world_transform_buf).unwrap_throw();
+
+        match (mesh, material) {
+            (Mesh::UnitQuad(mesh), Material::Sprite(material)) => {
+                material.activate(&mut gl, &world_transform_buf)?;
+                mesh.draw(&mut gl)?;
+            },
+            (Mesh::UnitCube(mesh), Material::ColoredCube(material)) => {
+                material.activate(&mut gl, &world_transform_buf)?;
+                mesh.draw(&mut gl)?;
+            },
+            _ => {
+                unimplemented!("unknown mesh/material combo!");   
+            }
+        }
     }
+
+    Ok(())
 }

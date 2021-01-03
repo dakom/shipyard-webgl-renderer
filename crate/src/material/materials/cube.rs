@@ -6,15 +6,16 @@ use awsm_web::{
 
 pub struct ColoredCubeMaterial {
     pub program_id: Id,
-    pub color: (f32, f32, f32, f32), 
+    pub colors: [f32; 24],
+    pub scale: (f32, f32, f32), 
 }
 
 impl ColoredCubeMaterial {
-    pub fn draw(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
+    pub fn activate(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
 
-        gl.activate_program(self.program_id)?; 
-        gl.upload_uniform_fvals_4_name("u_color", (self.color.0, self.color.1, self.color.2, self.color.3))?;
-        gl.upload_uniform_fvals_3_name("u_cube_scaler", (100.0, 100.0, 100.0))?;
+        gl.activate_program(self.program_id)?;
+        gl.upload_uniform_fvec_4_name("u_colors", &self.colors)?;
+        gl.upload_uniform_fvals_3_name("u_cube_scaler", (self.scale.0, self.scale.1, self.scale.2))?;
         gl.upload_uniform_mat_4_name("u_model", &world_transform)?;
         Ok(())
     }

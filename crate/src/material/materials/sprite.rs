@@ -10,7 +10,8 @@ pub struct SpriteMaterial {
 }
 
 impl SpriteMaterial {
-    pub fn draw(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
+    pub fn activate(&self, gl:&mut WebGl2Renderer, world_transform:&[f32;16]) -> Result<(), Error> {
+
 
         gl.activate_program(self.program_id)?; 
         gl.upload_uniform_mat_4_name("u_model", &world_transform)?;

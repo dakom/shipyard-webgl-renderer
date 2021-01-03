@@ -14,8 +14,10 @@ pub struct Tools {
 impl Tools {
     pub fn render(sidebar:Rc<Sidebar>) -> Dom {
         html!("div", {
+            .class("tool-buttons")
             .children(vec![
-                sprite_button(sidebar.state.clone())
+                sprite_button(sidebar.state.clone()),
+                cube_button(sidebar.state.clone())
             ])
         })
     }
@@ -27,6 +29,18 @@ fn sprite_button(state:Rc<State>) -> Dom {
         .event(clone!(state => move |evt:events::Click| {
             if let Some(scene) = state.scene.borrow_mut().as_mut() {
                 sprite::load(scene.clone());
+            }
+        }))
+    })
+}
+
+
+fn cube_button(state:Rc<State>) -> Dom {
+    html!("button", {
+        .text("Add Cube")
+        .event(clone!(state => move |evt:events::Click| {
+            if let Some(scene) = state.scene.borrow_mut().as_mut() {
+                cube::load(scene.clone());
             }
         }))
     })

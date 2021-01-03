@@ -50,10 +50,11 @@ impl MaterialCache {
             texture
         })
     }
-    pub fn new_colored_cube(&self, color: (f32, f32, f32, f32)) -> Material {
+    pub fn new_colored_cube(&self, colors: [f32;24], scale: (f32, f32, f32)) -> Material {
         Material::ColoredCube(ColoredCubeMaterial {
             program_id: self.program_ids.colored_cube,
-            color,
+            colors,
+            scale,
         })
     }
 

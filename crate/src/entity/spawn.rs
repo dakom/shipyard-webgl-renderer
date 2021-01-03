@@ -28,21 +28,4 @@ impl Renderer {
 
         Ok(entity)
     }
-
-    pub fn spawn_camera(&self, parent: Option<EntityId>, camera: Camera) -> Result<EntityId, shipyard::error::GetStorage> {
-        let world = &self.world;
-
-        let entity = {
-            world.borrow::<SceneGraphStoragesMut>()?
-                .spawn_child_identity(parent)
-
-        };
-
-        let (entities, mut cameras) 
-            = world.borrow::<(EntitiesViewMut, ViewMut<Camera>)>()?;
-
-        entities.add_component(entity, &mut cameras, camera);
-
-        Ok(entity)
-    }
 }

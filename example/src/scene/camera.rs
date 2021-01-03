@@ -4,23 +4,29 @@ use std::rc::Rc;
 use awsm_renderer::prelude::*;
 use shipyard::*;
 use super::Scene;
+use awsm_renderer::camera::{
+    arc_ball::ArcBall,
+    screen_static::ScreenStatic
+};
+use nalgebra::Point3;
 
-pub fn get_camera_projection(width: f64, height: f64) -> Matrix4 {
-    Matrix4::new_orthographic(0.0, width as f64, 0.0, height as f64, 0.01, 1000.0)
+pub struct CameraIds {
+    pub arc_ball: EntityId,
+    pub screen_static: EntityId,
 }
-
-pub fn create_camera(scene: Rc<Scene>, width: f64, height: f64) {
-
-    let renderer = &scene.renderer;
-    let camera = Camera::new_projection(get_camera_projection(width, height)); 
-    let entity = renderer.spawn_camera(None, camera).unwrap_throw();
-
-    renderer.world.run(|mut translations:ViewMut<Translation>| {
-        if let Ok(mut translation) = (&mut translations).get(entity) {
-            translation.z = -100.0;
-        } else {
-        }
+pub fn create_cameras(world:&World, width: f64, height: f64) -> CameraIds {
+    let arc_ball_entity = world.run(|mut entities:EntitiesViewMut, mut cameras: ViewMut<ArcBall>| {
+        let mut camera = ArcBall::new(Point3::new(0.0, 0.0, 1000.0), Point3::new(0.0, 0.0, 0.0));
+        camera.update_viewport(width as u32, height as u32);
+        (&mut entities).add_entity(&mut cameras, camera)
+    }).unwrap_throw();
+    let screen_static_entity = world.run(|mut entities:EntitiesViewMut, mut cameras: ViewMut<ScreenStatic>| {
+        let camera = ScreenStatic::new(width, height, -100.0);
+        (&mut entities).add_entity(&mut cameras, camera)
     }).unwrap_throw();
 
-    renderer.activate_camera(entity);
+    CameraIds {
+        arc_ball: arc_ball_entity,
+        screen_static: screen_static_entity
+    }
 }

@@ -34,9 +34,7 @@ impl Renderer {
         let mut gl = WebGl2Renderer::new(gl).unwrap_throw();
 
         //set constant ubos
-        let camera_buffers = CameraBuffers::new(&mut gl).unwrap_throw();
-        world.add_unique_non_send_sync(camera_buffers).unwrap_throw();
-        world.add_unique_non_send_sync(ActiveCamera::new()).unwrap_throw();
+        world.add_unique_non_send_sync(ActiveCamera::new(&mut gl).unwrap_throw()).unwrap_throw();
 
         //Clear color
         gl.set_clear_color(config.clear_color.0, config.clear_color.1, config.clear_color.2, config.clear_color.3);
@@ -49,9 +47,6 @@ impl Renderer {
 
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();
-
-        //Register workloads
-        crate::workload::init(&world);
 
         // Create self
         Self {
