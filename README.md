@@ -13,6 +13,8 @@ Nothing to see here... YET!
 
 A webgl2 renderer that builds on _awsm-web_ and _Shipyard ECS_:
 
+Though by the time it's done, WebGPU might be a thing... so we'll see :P
+
 ### Dependency stack
 | Web | ECS |
 | ----- | ---- |
