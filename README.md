@@ -5,7 +5,11 @@
 [![Documentation](https://docs.rs/awsm_renderer/badge.svg)](https://docs.rs/awsm_renderer)
 [![Demo](https://img.shields.io/badge/demo-launch-yellow)](https://dakom.github.io/awsm-renderer)
 
-# What is it?
+# Status
+
+Nothing to see here... YET!
+
+# What will it be?
 
 A webgl2 renderer that builds on _awsm-web_ and _Shipyard ECS_:
 
@@ -20,6 +24,3 @@ A webgl2 renderer that builds on _awsm-web_ and _Shipyard ECS_:
 The example additionally uses [Dominator](https://github.com/Pauan/rust-dominator) to tie it all together with a DOM-based UI
 
 
-# Status
-
-Nothing to see here... YET!

@@ -42,8 +42,6 @@ impl Scene {
         super::workloads::init(&_self.renderer.world);
 
         
-        _self.renderer.activate_camera(_self.camera_ids.screen_static);
-        //_self.renderer.activate_camera(_self.camera_ids.arc_ball);
 
         //Handle resize 
         *_self.resize_observer.borrow_mut() = Some(observe_resize(_self.clone()));
