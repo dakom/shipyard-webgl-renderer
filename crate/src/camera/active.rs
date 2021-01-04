@@ -4,6 +4,7 @@ use shipyard_scenegraph::prelude::*;
 use awsm_web::webgl::{Id, WebGl2Renderer, BufferUsage};
 use crate::prelude::*;
 use super::traits::CameraBase;
+use crate::constants::UBO_CAMERA;
 
 pub type ActiveCameraView<'a> = NonSendSync<UniqueView<'a, ActiveCamera>>;
 pub type ActiveCameraViewMut<'a> = NonSendSync<UniqueViewMut<'a, ActiveCamera>>;
@@ -32,12 +33,14 @@ impl ActiveCamera {
         camera.view().write_to_vf32(&mut self.scratch_buffer[0..16]);
         camera.projection().write_to_vf32(&mut self.scratch_buffer[16..32]);
 
-        gl.upload_buffer_to_uniform_buffer_f32_name(
-            "camera",
+        gl.upload_uniform_buffer_f32(
             self.buffer_id,
             &self.scratch_buffer,
             BufferUsage::DynamicDraw,
-        )
+        )?;
+
+        gl.bind_uniform_buffer_loc(self.buffer_id, UBO_CAMERA);
+        Ok(())
     }
     pub fn activate(&mut self, entity:EntityId) {
         self.entity = Some(entity);

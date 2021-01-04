@@ -44,8 +44,6 @@ dependencies = [
 [[package]]
 name = "awsm_web"
 version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fcc594429fce9922d8fecba209d84b2badd551e282c5d4794b63fb61a903693"
 dependencies = [
  "beach_map",
  "discard",
@@ -706,6 +704,7 @@ dependencies = [
  "hashbrown",
  "indexmap",
  "parking_lot",
+ "serde",
 ]
 
 [[package]]

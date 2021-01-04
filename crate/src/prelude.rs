@@ -20,6 +20,7 @@ pub type GlView<'a> = NonSendSync<UniqueView<'a, WebGl2Renderer>>;
 pub type GlViewMut<'a> = NonSendSync<UniqueViewMut<'a, WebGl2Renderer>>;
 
 pub struct Renderer {
+    pub config: Config,
     pub world: Rc<World>,
     pub meshes: MeshCache,
     pub materials: MaterialCache,

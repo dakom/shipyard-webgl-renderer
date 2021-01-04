@@ -11,6 +11,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::convert::TryInto;
+use awsm_web::dom::*;
+use web_sys::{HtmlCanvasElement, Event};
 
 pub struct Input {
     listeners: Vec<EventListener>,
@@ -36,25 +38,36 @@ impl InputState {
     }
 }
 
+fn get_x_y(canvas:&HtmlCanvasElement, event:&Event) -> (i32, i32) {
+    let event = event.dyn_ref::<web_sys::MouseEvent>().unwrap_throw();
+    let rect = canvas.get_bounding_client_rect();
+    let (client_x, client_y) = (event.client_x(), event.client_y());
+    let (x, y) = (client_x - (rect.left().round() as i32), client_y - (rect.top().round() as i32)); 
+
+    let y = (canvas.height() as i32) - y;
+    (x, y)
+}
 impl Input {
-    pub fn new<A, B, C, D, E, F, G>(
+    pub fn new<A, B, C, D, E, F, G, H>(
         canvas: &web_sys::HtmlCanvasElement,
         mut on_pointer_down: A,
-        mut on_pointer_move: B,
-        mut on_pointer_up: C,
-        mut on_click: D,
-        mut on_key_up: E,
-        mut on_key_down: F,
-        mut on_wheel: G,
+        mut on_pointer_hover: B,
+        mut on_pointer_drag: C,
+        mut on_pointer_up: D,
+        mut on_click: E,
+        mut on_key_up: F,
+        mut on_key_down: G,
+        mut on_wheel: H,
     ) -> Self 
     where
         A: FnMut(i32, i32) + 'static,
-        B: FnMut(i32, i32, i32, i32, i32, i32) + 'static,
+        B: FnMut(i32, i32) + 'static,
         C: FnMut(i32, i32, i32, i32, i32, i32) + 'static,
-        D: FnMut(i32, i32) + 'static,
-        E: FnMut(&str) + 'static,
+        D: FnMut(i32, i32, i32, i32, i32, i32) + 'static,
+        E: FnMut(i32, i32) + 'static,
         F: FnMut(&str) + 'static,
-        G: FnMut(WheelDeltaMode, f64, f64, f64) + 'static,
+        G: FnMut(&str) + 'static,
+        H: FnMut(WheelDeltaMode, f64, f64, f64) + 'static,
     {
         let state = Rc::new(InputState::new());
         let window = web_sys::window().unwrap_throw();
@@ -62,9 +75,9 @@ impl Input {
         let listeners = vec![
             EventListener::new(canvas, "pointerdown", {
                 let state = state.clone();
+                let canvas = canvas.clone();
                 move |event| {
-                    let event = event.dyn_ref::<web_sys::MouseEvent>().unwrap_throw();
-                    let (x, y) = (event.client_x(), event.client_y());
+                    let (x, y) = get_x_y(&canvas, &event);
                     state.is_pointer_down.store(true, Ordering::SeqCst);
                     state.first_pointer_move_x.store(x, Ordering::SeqCst);
                     state.first_pointer_move_y.store(y, Ordering::SeqCst);
@@ -77,11 +90,10 @@ impl Input {
             
             EventListener::new(canvas, "pointermove", {
                 let state = state.clone();
+                let canvas = canvas.clone();
                 move |event| {
+                    let (x, y) = get_x_y(&canvas, &event);
                     if state.is_pointer_down.load(Ordering::SeqCst) {
-                        let event = event.dyn_ref::<web_sys::MouseEvent>().unwrap_throw();
-                        
-                        let (x, y) = (event.client_x(), event.client_y());
                         
                         let (first_x, first_y) = (
                             state.first_pointer_move_x.load(Ordering::SeqCst),
@@ -107,8 +119,10 @@ impl Input {
                         state.last_pointer_move_y.store(y, Ordering::SeqCst);
 
                         if diff_x != 0 || diff_y != 0 {
-                            on_pointer_move(x, y, delta_x, delta_y, diff_x, diff_y);
+                            on_pointer_drag(x, y, delta_x, delta_y, diff_x, diff_y);
                         }
+                    } else {
+                        on_pointer_hover(x, y);
                     }
                 }
             }),
@@ -117,11 +131,11 @@ impl Input {
             //and we want to catch it anywhere
             EventListener::new(&window, "pointerup", {
                 let state = state.clone();
+                let canvas = canvas.clone();
                 move |event| {
                     if state.is_pointer_down.load(Ordering::SeqCst) {
-                        let event = event.dyn_ref::<web_sys::MouseEvent>().unwrap_throw();
-                        
-                        let (x, y) = (event.client_x(), event.client_y());
+
+                        let (x, y) = get_x_y(&canvas, &event);
                         
                         let (first_x, first_y) = (
                             state.first_pointer_move_x.load(Ordering::SeqCst),
@@ -156,9 +170,9 @@ impl Input {
 
             EventListener::new(canvas, "click", {
                 let state = state.clone();
+                let canvas = canvas.clone();
                 move |event| {
-                    let event = event.dyn_ref::<web_sys::MouseEvent>().unwrap_throw();
-                    let (x, y) = (event.client_x(), event.client_y());
+                    let (x, y) = get_x_y(&canvas, &event);
                     on_click(x, y);
                 }
             }),

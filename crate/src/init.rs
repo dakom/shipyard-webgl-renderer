@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::picker::ColorPicker;
 use std::rc::Rc;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -33,6 +34,10 @@ impl Renderer {
 
         let mut gl = WebGl2Renderer::new(gl).unwrap_throw();
 
+
+        //empty color picker no matter what here (will be set on resize)
+        world.add_unique::<Option<ColorPicker>>(None).unwrap_throw();
+
         //set constant ubos
         world.add_unique_non_send_sync(ActiveCamera::new(&mut gl).unwrap_throw()).unwrap_throw();
 
@@ -43,13 +48,14 @@ impl Renderer {
         let meshes = MeshCache::init(&mut gl).unwrap_throw();
 
         // Materials 
-        let materials = MaterialCache::init(&mut gl).unwrap();
+        let materials = MaterialCache::init(&mut gl, &config).unwrap();
 
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();
 
         // Create self
         Self {
+            config,
             world,
             meshes,
             materials,

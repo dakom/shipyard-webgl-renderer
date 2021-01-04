@@ -53,6 +53,7 @@ impl Scene {
                 let world = &_self.renderer.world;
                 world.run_workload(TRANSFORMS).unwrap_throw();
                 world.run_workload(RENDER).unwrap_throw();
+                //_self.renderer.debug_show_color_picker().unwrap();
             })
         });
 
@@ -66,8 +67,14 @@ impl Scene {
             },
             {
                 let _self = _self.clone();
+                move |x: i32, y: i32| {
+                    handlers::pointer_hover(_self.clone(), x, y);
+                }
+            },
+            {
+                let _self = _self.clone();
                 move |x: i32, y: i32, delta_x: i32, delta_y: i32, diff_x: i32, diff_y: i32| {
-                    handlers::pointer_move(_self.clone(), x, y, delta_x, delta_y, diff_x, diff_y);
+                    handlers::pointer_drag(_self.clone(), x, y, delta_x, delta_y, diff_x, diff_y);
                 }
             },
             {
