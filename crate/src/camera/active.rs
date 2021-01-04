@@ -3,6 +3,7 @@ use shipyard::*;
 use shipyard_scenegraph::prelude::*;
 use awsm_web::webgl::{Id, WebGl2Renderer, BufferUsage};
 use crate::prelude::*;
+use super::traits::CameraBase;
 
 pub type ActiveCameraView<'a> = NonSendSync<UniqueView<'a, ActiveCamera>>;
 pub type ActiveCameraViewMut<'a> = NonSendSync<UniqueViewMut<'a, ActiveCamera>>;
@@ -63,20 +64,20 @@ impl Renderer {
         }
     }
 
-    /*
-    pub fn with_active_camera<'a, T, F>(&self, callback: F) 
+    /// Will only run the callback if the active camera is this type
+    pub fn with_active_camera<'a, T, F>(&'a self, mut callback: F) -> Result<(), shipyard::error::Run>
     where
-        T: Get + 'static,
-        F: FnOnce(&mut T)
+        T: CameraBase + 'static,
+        ViewMut<'a, T>: Borrow<'a>,
+        F: FnMut(&mut T)
     {
         let world = &self.world;
         world.run(move |active_camera: ActiveCameraView, mut cameras: ViewMut<T>| {
-            if let Some(camera) = active_camera.entity
-                .and_then(move |entity| (&cameras).get(entity).ok()) 
-                {
+            if let Some(entity) = active_camera.entity {
+                if let Ok(mut camera) = (&mut cameras).get(entity) {
                     callback(&mut camera);
                 }
-        });
+            }
+        })
     }
-    */
 }
