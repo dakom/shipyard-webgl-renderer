@@ -5,7 +5,7 @@ use shipyard::*;
 use shipyard_scenegraph::prelude::*;
 use web_sys::HtmlCanvasElement;
 use awsm_web::webgl::{ WebGl2Renderer, BufferMask, GlToggle};
-use super::forward::render_forward;
+use crate::render::forward::render_forward;
 
 pub fn render_sys(
     mut gl:GlViewMut,

@@ -1,6 +1,4 @@
 mod forward;
-mod render;
-mod camera_ubo;
+mod systems;
 
-pub use camera_ubo::*;
-pub use render::*;
+pub use systems::*;

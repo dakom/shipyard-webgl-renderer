@@ -63,8 +63,8 @@ impl MaterialCache {
 impl VertexShaderIds { 
     pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
         Ok(Self {
-            quad_unit: gl.compile_shader(include_str!("./vertex/quad-unit.glsl"), ShaderType::Vertex)?,
-            cube_unit: gl.compile_shader(include_str!("./vertex/cube-unit.glsl"), ShaderType::Vertex)?
+            quad_unit: gl.compile_shader(include_str!("./materials/vertex/quad-unit.glsl"), ShaderType::Vertex)?,
+            cube_unit: gl.compile_shader(include_str!("./materials/vertex/cube-unit.glsl"), ShaderType::Vertex)?
         })
     }
 }
@@ -73,8 +73,8 @@ impl VertexShaderIds {
 impl FragmentShaderIds { 
     pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
         Ok(Self {
-            unlit_diffuse: gl.compile_shader(include_str!("./fragment/unlit-diffuse.glsl"), ShaderType::Fragment)?,
-            unlit_color: gl.compile_shader(include_str!("./fragment/unlit-color.glsl"), ShaderType::Fragment)?
+            unlit_diffuse: gl.compile_shader(include_str!("./materials/fragment/unlit-diffuse.glsl"), ShaderType::Fragment)?,
+            unlit_color: gl.compile_shader(include_str!("./materials/fragment/unlit-color.glsl"), ShaderType::Fragment)?
         })
     }
 }
