@@ -1,14 +1,11 @@
-use crate::prelude::*;
+use super::kinds::*;
+use super::materials::*;
+use crate::texture::TextureInfo;
+
 use awsm_web::{
     webgl::{Id, WebGl2Renderer, ShaderType},
     errors::Error
 };
-
-pub enum Material {
-    Sprite(SpriteMaterial),
-    ColoredCube(ColoredCubeMaterial)
-}
-
 
 //Not supporting dynamic materials for now
 pub struct MaterialCache {

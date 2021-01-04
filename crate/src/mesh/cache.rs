@@ -1,16 +1,12 @@
-use crate::prelude::*;
+use super::meshes::*;
+use super::kinds::*;
 use awsm_web::{
     webgl::{Id, WebGl2Renderer},
     errors::Error
 };
-use super::meshes::*;
 
 pub type VaoId = Id;
 
-pub enum Mesh {
-    UnitQuad(UnitQuadMesh),
-    UnitCube(UnitCubeMesh)
-}
 
 //Not supporting dynamic attributes for now
 pub struct MeshCache {

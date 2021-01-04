@@ -5,7 +5,7 @@ use shipyard::*;
 use shipyard_scenegraph::prelude::*;
 use web_sys::HtmlCanvasElement;
 use awsm_web::webgl::{ WebGl2Renderer, BufferMask, GlToggle};
-use crate::render::forward::render_forward;
+use crate::render::passes::{forward, deferred};
 
 pub fn render_sys(
     mut gl:GlViewMut,
@@ -19,6 +19,28 @@ pub fn render_sys(
     ]);
 
     gl.toggle(GlToggle::DepthTest, true);
-    render_forward(gl, meshes, materials, world_transforms);
 
+    let mut world_transform_buf:[f32;16] = [0.0;16];
+
+    for (mesh, 
+         material, 
+         world_transform,
+        ) 
+        in 
+        (&meshes, 
+         &materials, 
+         &world_transforms,
+        ).iter() {
+
+        world_transform.write_to_vf32(&mut world_transform_buf);
+
+        match material.render_kind() {
+            RenderKind::Forward => {
+                forward::render(&mut gl, mesh, material, &world_transform_buf).unwrap_throw();
+            },
+            RenderKind::Deferred => {
+                deferred::render(&mut gl, mesh, material, &world_transform_buf).unwrap_throw();
+            }
+        }
+    }
 }

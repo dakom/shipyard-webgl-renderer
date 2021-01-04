@@ -42,8 +42,10 @@ impl UnitQuadMesh {
             vao_id
         })
     }
+}
 
-    pub fn draw(&self, gl:&WebGl2Renderer) -> Result<(), Error> {
+impl MeshExt for UnitQuadMesh {
+    fn draw(&self, gl:&WebGl2Renderer) -> Result<(), Error> {
         gl.activate_vertex_array(self.vao_id)?;
         gl.draw_arrays(BeginMode::TriangleStrip, 0, 4);
         Ok(())

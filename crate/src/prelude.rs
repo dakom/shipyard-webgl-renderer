@@ -5,6 +5,7 @@ pub use crate::config::*;
 pub use crate::constants::*;
 pub use crate::view::*;
 pub use crate::camera::*;
+pub use crate::render::*;
 pub use awsm_web::webgl::ResizeStrategy;
 
 //use crate::mesh::init::StaticGeometry;

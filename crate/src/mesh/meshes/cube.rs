@@ -60,7 +60,10 @@ impl UnitCubeMesh {
         })
     }
 
-    pub fn draw(&self, gl:&WebGl2Renderer) -> Result<(), Error> {
+}
+
+impl MeshExt for UnitCubeMesh {
+    fn draw(&self, gl:&WebGl2Renderer) -> Result<(), Error> {
         gl.activate_vertex_array(self.vao_id)?;
         gl.draw_elements(BeginMode::Triangles, N_CUBE_ELEMENTS, DataType::UnsignedByte, 0);
         Ok(())
