@@ -49,7 +49,6 @@ impl Renderer {
 }
 
 //TODO - scissor to one pixel!
-//
 pub fn picker_stash_sys(
     mut gl:GlViewMut,
     picker_buffers: PickerBuffersView,
