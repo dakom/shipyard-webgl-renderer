@@ -56,6 +56,7 @@ features = [
     "Node",
     "Window",
     "Performance",
+    "HtmlSelectElement",
 
 ]
 

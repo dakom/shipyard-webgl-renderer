@@ -3,20 +3,24 @@
  * the picking pass in the regular pipeline
  *
  * 1. integer buffers don't support blending (have to convert to/from float)
- * 2. float buffers can't be rendered too (without an extension that limits audience)
+ * 2. float buffers can't be rendered to (without an extension that limits audience)
  * 3. can't use alpha channel for id part since less than 1.0 affects blending
+ * 4. can't discard transparent, it still writes the 0 value out
  *
- * these combine to mean id pool is too limited
+ * these combine to mean id pool is too limited and/or there are glitches
  *
  * plus, the approach we are using has additional advantages besides supporting full entity range
  *
  * 1. can be improved when there's more general culling
  * 2. much easier to opt in/out of picking
  * 3. much easier to control which entities are selectable (just add/remove the component)
+ * 4. easy to toggle between debug mode and real mode
  *
  *
  * See the table at https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
  * And discussion at https://stackoverflow.com/questions/61345380/alpha-blending-with-integer-texture-for-object-picking
+ * And https://stackoverflow.com/a/51757743/784519
+ * 
  */
 
 

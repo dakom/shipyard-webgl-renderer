@@ -9,6 +9,7 @@ use awsm_renderer::{
 
 pub const TRANSFORMS: &str = "TRANSFORMS";
 pub const RENDER: &str = "RENDER";
+pub const CAMERA: &str = "CAMERA";
 
 pub(crate) fn init(world:&World) {
     Workload::builder(TRANSFORMS)
@@ -17,12 +18,15 @@ pub(crate) fn init(world:&World) {
         .add_to_world(&world)
         .unwrap_throw();
 
-    Workload::builder(RENDER)
+    Workload::builder(CAMERA)
         .try_with_system(system!(camera_ubo_sys::<ArcBall>)).unwrap_throw()
         .try_with_system(system!(camera_ubo_sys::<ScreenStatic>)).unwrap_throw()
+        .add_to_world(&world)
+        .unwrap_throw();
+
+    Workload::builder(RENDER)
         .try_with_system(system!(render_sys)).unwrap_throw()
         .try_with_system(system!(picker_stash_sys)).unwrap_throw()
-        //.try_with_system(system!(picker_debug_sys)).unwrap_throw()
         .add_to_world(&world)
         .unwrap_throw();
 }

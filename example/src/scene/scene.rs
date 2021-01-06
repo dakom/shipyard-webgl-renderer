@@ -9,10 +9,10 @@ use super::events::handlers;
 use super::{
     camera::*,
     resize::observe_resize,
-    workloads::{TRANSFORMS, RENDER},
+    tick::on_tick,
 };
 use std::collections::HashSet;
-
+use crate::ui::state::State as UiState;
 pub struct Scene {
     pub camera_ids: CameraIds,
     pub input: RefCell<Option<Input>>,
@@ -21,10 +21,11 @@ pub struct Scene {
     pub canvas: HtmlCanvasElement,
     pub raf: RefCell<Option<Raf>>,
     pub resize_observer: RefCell<Option<ResizeObserver>>,
+    pub ui_state: Rc<UiState>,
 }
 
 impl Scene {
-    pub fn new(canvas:HtmlCanvasElement) -> Rc<Self> {
+    pub fn new(ui_state: Rc<UiState>, canvas:HtmlCanvasElement) -> Rc<Self> {
         let renderer = Renderer::new(&canvas, None, Config::default());
         let (width, height) = (canvas.client_width() as f64, canvas.client_height() as f64);
         let camera_ids = create_cameras(&renderer.world, width, height);
@@ -37,6 +38,7 @@ impl Scene {
             canvas: canvas.clone(),
             raf: RefCell::new(None),
             resize_observer: RefCell::new(None),
+            ui_state,
         });
 
         super::workloads::init(&_self.renderer.world);
@@ -47,11 +49,8 @@ impl Scene {
         //Main loop
         *_self.raf.borrow_mut() = Some({
             let _self = _self.clone();
-            Raf::new(move |_| {
-                let world = &_self.renderer.world;
-                world.run_workload(TRANSFORMS).unwrap_throw();
-                world.run_workload(RENDER).unwrap_throw();
-                //_self.renderer.debug_show_entity_picker().unwrap();
+            Raf::new(move |timestamp:f64| {
+                on_tick(_self.clone(), timestamp);
             })
         });
 

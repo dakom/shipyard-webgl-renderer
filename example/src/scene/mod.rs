@@ -6,3 +6,4 @@ pub mod workloads;
 pub mod camera;
 pub mod entities;
 pub mod events;
+pub mod tick;

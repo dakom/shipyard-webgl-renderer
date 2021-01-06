@@ -25,7 +25,7 @@ impl Tools {
 
 fn sprite_button(state:Rc<State>) -> Dom {
     html!("button", {
-        .text("Add Sprite")
+        .text("Sprite")
         .event(clone!(state => move |evt:events::Click| {
             if let Some(scene) = state.scene.borrow_mut().as_mut() {
                 sprite::load(scene.clone());
@@ -37,7 +37,7 @@ fn sprite_button(state:Rc<State>) -> Dom {
 
 fn cube_button(state:Rc<State>) -> Dom {
     html!("button", {
-        .text("Add Cube")
+        .text("Cube")
         .event(clone!(state => move |evt:events::Click| {
             if let Some(scene) = state.scene.borrow_mut().as_mut() {
                 cube::load(scene.clone());

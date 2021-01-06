@@ -7,10 +7,19 @@
  * the update_entity_picker() value is cleared
  * 
  * this covers the typical use cases of click, drag, and hover
+ * and there's extremely little overhead to just skip picker_stash_sys
+ * the picking itself isn't the absolute most ideal method
+ * yet it's the most flexible and has the right set of tradeoffs
+ * see comments in PickerBuffersView for more on what didn't work
  *
- * however, if you want to say have it updated while an animation is playing
+ * the approach here is based off https://stackoverflow.com/a/51757743/784519
+ *
+ * if you want to say have it updated while an animation is playing
  * store the value somewhere and call update_entity_picker() each frame
  * (even if the value hasn't changed - since the screen has)
+ *
+ * picker_debug_sys can be called to render the whole buffer
+ * (without the scissor test)
  */
 
 use crate::prelude::*;
@@ -33,11 +42,30 @@ pub struct EntityPicker(pub Option<EntityId>);
 pub struct EntityPickerPosition(pub Option<(u32, u32)>);
 
 pub fn entity_to_color(entity:EntityId) -> [u16;4] {
-    let half:u16 = u16::MAX/2;
-    [half, half, half, u16::MAX]
+    let value = entity.inner();
+
+    let r = ((value >> 48) & 0xFFFF) as u16;
+    let g = ((value >> 32) & 0xFFFF) as u16;
+    let b = ((value >> 16) & 0xFFFF) as u16;
+    let a = (value & 0xFFFF) as u16;
+    log::info!("{:?} -> r: {} g: {} b: {} a: {}", entity, r, g, b, a);
+
+    [r, g, b, a]
 }
 pub fn color_to_entity(color:[u16;4]) -> Option<EntityId> {
-    Some(EntityId::from_index_and_gen(0,0))
+    let value = 
+        (color[0] as u64) << 48
+        | (color[1] as u64) << 32
+        | (color[2] as u64) << 16 
+        | (color[3] as u64);
+
+    if value == 0 {
+        None
+    } else {
+        log::info!("rgba {:?} -> {}", color, value);
+        //TODO - create Entity from value
+        Some(EntityId::from_index_and_gen(0,0))
+    }
 }
 
 impl Renderer {
@@ -48,7 +76,6 @@ impl Renderer {
     }
 }
 
-//TODO - scissor to one pixel!
 pub fn picker_stash_sys(
     mut gl:GlViewMut,
     picker_buffers: PickerBuffersView,
@@ -69,7 +96,8 @@ pub fn picker_stash_sys(
         gl.set_depth_mask(true);
         gl.toggle(GlToggle::DepthTest, true);
         gl.toggle(GlToggle::Blend, false);
-
+        gl.toggle(GlToggle::ScissorTest, true);
+        gl.scissor(x as i32,y as i32, 1, 1);
         let mut world_transform_buf:[f32;16] = [0.0;16];
 
         picker_buffers.start(&mut gl).unwrap_throw();
@@ -92,12 +120,15 @@ pub fn picker_stash_sys(
         picker_buffers.finish(&mut gl).unwrap_throw();
 
         let color = picker_buffers.get_color(&mut gl, x, y).unwrap_throw();
-        log::info!("{:?}", color); 
         entity_picker.0 = color_to_entity(color);
+
+
+        gl.toggle(GlToggle::ScissorTest, false);
     }
 }
 //For debug - don't scissor, or stash, and do draw at the end
 pub fn picker_debug_sys(
+    all_colors_white: bool,
     mut gl:GlViewMut,
     picker_buffers: PickerBuffersView,
     active_camera: ActiveCameraView,
@@ -115,6 +146,7 @@ pub fn picker_debug_sys(
     gl.toggle(GlToggle::DepthTest, true);
     gl.toggle(GlToggle::Blend, false);
 
+
     let mut world_transform_buf:[f32;16] = [0.0;16];
 
     picker_buffers.start(&mut gl).unwrap_throw();
@@ -125,7 +157,13 @@ pub fn picker_debug_sys(
         {
             world_transform.write_to_vf32(&mut world_transform_buf);
             material.activate(&mut gl).unwrap_throw();
-            let entity_color = material.get_entity_color();
+            let entity_color = {
+                if all_colors_white {
+                    &[0xFFFFu16;4]
+                } else {
+                    material.get_entity_color()
+                }
+            };
 
             gl.upload_uniform_mat_4_name("u_model", &world_transform_buf).unwrap_throw();
             gl.upload_uniform_uvals_4_name("u_entity_color", (entity_color[0] as u32, entity_color[1] as u32, entity_color[2] as u32, entity_color[3] as u32)).unwrap_throw();
@@ -135,7 +173,6 @@ pub fn picker_debug_sys(
         }
 
     picker_buffers.finish(&mut gl).unwrap_throw();
-
 
     picker_buffers.debug_blit(&mut gl).unwrap_throw();
 }

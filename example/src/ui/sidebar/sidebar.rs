@@ -9,6 +9,7 @@ use super::{
     border::Border,
     tools::Tools,
     help::Help,
+    render_mode::RenderModeDom,
 };
 use wasm_bindgen::JsCast;
 
@@ -30,8 +31,12 @@ impl Sidebar {
                     .class("contents")
                     .children(vec![
                         Help::render(_self.clone()),
+                        html!("h3", {
+                            .text("Render Mode")
+                        }),
+                        RenderModeDom::render(_self.clone()),
                         html!("header", {
-                            .text("Tools")
+                            .text("Create")
                         }),
                         Tools::render(_self.clone()),
                     ])

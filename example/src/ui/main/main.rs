@@ -18,7 +18,7 @@ impl Main {
             .child(
                 html!("canvas" => HtmlCanvasElement, {
                     .after_inserted(clone!(state => move |canvas| {
-                        state.canvas_ready(canvas);
+                        State::canvas_ready(state, canvas);
                     }))
                 })
             )

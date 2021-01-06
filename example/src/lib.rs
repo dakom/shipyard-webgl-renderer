@@ -4,6 +4,7 @@
 mod ui;
 mod scene;
 mod utils;
+mod types;
 
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
