@@ -13,4 +13,3 @@ pub mod view;
 pub mod camera;
 pub mod constants;
 pub mod input;
-pub mod picker;

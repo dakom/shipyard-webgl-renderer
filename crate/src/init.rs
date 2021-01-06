@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::picker::ColorPicker;
 use std::rc::Rc;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -29,26 +28,31 @@ impl Renderer {
         // Prep renderer
         let gl = get_webgl_context_2(&canvas, Some(&WebGlContextOptions {
             alpha: false,
+            antialias: false,
             ..WebGlContextOptions::default()
         })).unwrap_throw();
 
         let mut gl = WebGl2Renderer::new(gl).unwrap_throw();
 
 
-        //empty color picker no matter what here (will be set on resize)
-        world.add_unique::<Option<ColorPicker>>(None).unwrap_throw();
+        //Screen buffers
+        world.add_unique::<Option<DrawBuffers>>(None).unwrap_throw();
+        world.add_unique::<Option<PickerBuffers>>(None).unwrap_throw();
+        world.add_unique::<EntityPicker>(EntityPicker(None)).unwrap_throw();
+        world.add_unique::<EntityPickerPosition>(EntityPickerPosition(None)).unwrap_throw();
 
         //set constant ubos
         world.add_unique_non_send_sync(ActiveCamera::new(&mut gl).unwrap_throw()).unwrap_throw();
 
-        //Clear color
-        gl.set_clear_color(config.clear_color.0, config.clear_color.1, config.clear_color.2, config.clear_color.3);
 
         // Meshes 
-        let meshes = MeshCache::init(&mut gl).unwrap_throw();
+        let meshe_cache = MeshCache::init(&mut gl).unwrap_throw();
 
-        // Materials 
-        let materials = MaterialCache::init(&mut gl, &config).unwrap();
+        // Shaders 
+        let shader_cache = ShaderCache::new(&mut gl).unwrap();
+
+        // Programs
+        let program_cache = ProgramCache::new(&mut gl, &shader_cache, &config).unwrap();
 
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();
@@ -57,8 +61,9 @@ impl Renderer {
         Self {
             config,
             world,
-            meshes,
-            materials,
+            meshe_cache,
+            shader_cache,
+            program_cache,
             textures: Textures::new()
         }
     }

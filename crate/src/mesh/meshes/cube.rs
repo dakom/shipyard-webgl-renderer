@@ -24,7 +24,10 @@ pub struct UnitCubeMesh {
 pub const N_CUBE_ELEMENTS:u32 = 36;
 
 impl UnitCubeMesh {
-    pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
+    pub fn new(renderer:&Renderer) -> Mesh {
+        Mesh::UnitCube(renderer.meshe_cache.unit_cube.clone())
+    }
+    pub fn init(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
         let buffers = UnitCubeBuffers::new(gl)?;
         let vao_id = gl.create_vertex_array()?;
 

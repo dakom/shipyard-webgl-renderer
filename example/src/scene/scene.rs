@@ -41,8 +41,6 @@ impl Scene {
 
         super::workloads::init(&_self.renderer.world);
 
-        
-
         //Handle resize 
         *_self.resize_observer.borrow_mut() = Some(observe_resize(_self.clone()));
 
@@ -53,7 +51,7 @@ impl Scene {
                 let world = &_self.renderer.world;
                 world.run_workload(TRANSFORMS).unwrap_throw();
                 world.run_workload(RENDER).unwrap_throw();
-                //_self.renderer.debug_show_color_picker().unwrap();
+                //_self.renderer.debug_show_entity_picker().unwrap();
             })
         });
 

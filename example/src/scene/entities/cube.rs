@@ -5,13 +5,14 @@ use wasm_bindgen::prelude::*;
 use shipyard_scenegraph::prelude::*;
 use shipyard::*;
 use wasm_bindgen_futures::spawn_local;
+use awsm_renderer::prelude::*;
 
 pub fn load(scene: Rc<Scene>) {
     spawn_local(async move {
 
         let renderer = &scene.renderer;
-        let mesh = renderer.meshes.new_unit_cube();
-        let material = renderer.materials.new_colored_cube(
+        let mesh = UnitCubeMesh::new(&renderer);
+        let material = ColoredCubeMaterial::new(&renderer, 
             [
                 1.0, 0.0, 0.0, 1.0,
                 1.0, 1.0, 0.0, 1.0,

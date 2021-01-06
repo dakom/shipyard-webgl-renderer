@@ -22,7 +22,10 @@ pub struct UnitQuadMesh {
 }
 
 impl UnitQuadMesh {
-    pub fn new(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
+    pub fn new(renderer:&Renderer) -> Mesh {
+        Mesh::UnitQuad(renderer.meshe_cache.unit_quad.clone())
+    }
+    pub fn init(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
         let buffers = UnitQuadBuffers::new(gl)?;
         let vao_id = gl.create_vertex_array()?;
 

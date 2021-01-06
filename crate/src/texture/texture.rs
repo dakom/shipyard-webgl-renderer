@@ -55,9 +55,9 @@ impl Renderer {
             Some(info) => Ok(info),
             None => {
                 let img = loaders::image::load(url.clone()).await?;
-                let mut webgl = self.world.borrow::<GlViewMut>().unwrap();
-                let id = webgl.create_texture()?;
-                webgl.assign_simple_texture(
+                let mut gl = self.world.borrow::<GlViewMut>().unwrap();
+                let id = gl.create_texture()?;
+                gl.assign_simple_texture(
                     id,
                     TextureTarget::Texture2d,
                     &SimpleTextureOptions {

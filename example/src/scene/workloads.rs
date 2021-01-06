@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 use awsm_renderer::{
     camera::arc_ball::ArcBall,
     camera::screen_static::ScreenStatic,
-    render::{camera_ubo_sys, render_sys}
+    render::{camera_ubo_sys, render_sys, picker_stash_sys, picker_debug_sys}
 };
 
 pub const TRANSFORMS: &str = "TRANSFORMS";
@@ -21,6 +21,8 @@ pub(crate) fn init(world:&World) {
         .try_with_system(system!(camera_ubo_sys::<ArcBall>)).unwrap_throw()
         .try_with_system(system!(camera_ubo_sys::<ScreenStatic>)).unwrap_throw()
         .try_with_system(system!(render_sys)).unwrap_throw()
+        .try_with_system(system!(picker_stash_sys)).unwrap_throw()
+        //.try_with_system(system!(picker_debug_sys)).unwrap_throw()
         .add_to_world(&world)
         .unwrap_throw();
 }

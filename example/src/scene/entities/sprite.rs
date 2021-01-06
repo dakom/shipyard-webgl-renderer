@@ -5,15 +5,16 @@ use wasm_bindgen::prelude::*;
 use shipyard_scenegraph::prelude::*;
 use shipyard::*;
 use wasm_bindgen_futures::spawn_local;
+use awsm_renderer::prelude::*;
 
 pub fn load(scene: Rc<Scene>) {
     spawn_local(async move {
         let renderer = &scene.renderer;
 
         let texture = renderer.load_texture(media_url("smiley.svg")).await.unwrap_throw();
-        log::info!("{:?}", texture);
-        let mesh = renderer.meshes.new_unit_quad();
-        let material = renderer.materials.new_sprite(texture);
+
+        let mesh = UnitQuadMesh::new(&renderer);
+        let material = SpriteMaterial::new(&renderer, texture);
         renderer.spawn_mesh_material(None, mesh, material).unwrap_throw();
     });
 }

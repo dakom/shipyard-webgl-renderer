@@ -39,7 +39,7 @@ impl ActiveCamera {
             BufferUsage::DynamicDraw,
         )?;
 
-        gl.bind_uniform_buffer_loc(self.buffer_id, UBO_CAMERA);
+        gl.activate_uniform_buffer_loc(self.buffer_id, UBO_CAMERA);
         Ok(())
     }
     pub fn activate(&mut self, entity:EntityId) {

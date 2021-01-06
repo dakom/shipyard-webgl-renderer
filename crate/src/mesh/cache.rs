@@ -16,21 +16,13 @@ pub struct MeshCache {
 
 impl MeshCache {
     pub fn init(gl:&mut WebGl2Renderer) -> Result<Self, Error> {
-        let unit_quad = UnitQuadMesh::new(gl)?;
-        let unit_cube = UnitCubeMesh::new(gl)?;
+        let unit_quad = UnitQuadMesh::init(gl)?;
+        let unit_cube = UnitCubeMesh::init(gl)?;
         Ok(
             Self { 
                 unit_quad,
                 unit_cube
             }
         )
-    }
-
-    pub fn new_unit_quad(&self) -> Mesh {
-        Mesh::UnitQuad(self.unit_quad.clone())
-    }
-
-    pub fn new_unit_cube(&self) -> Mesh {
-        Mesh::UnitCube(self.unit_cube.clone())
     }
 }

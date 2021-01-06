@@ -13,11 +13,11 @@ const KEY_SPACE:&'static str = "Space";
 const KEY_C:&'static str = "KeyC";
 
 pub fn pointer_down(scene:Rc<Scene>, x: i32, y: i32) {
-    scene.renderer.pick_color_entity(x as u32, y as u32);
+    //scene.renderer.update_entity_picker(x as u32, y as u32);
 }
 
 pub fn pointer_hover(scene:Rc<Scene>, x: i32, y: i32) {
-
+    //scene.renderer.update_entity_picker(x as u32, y as u32);
 }
 //delta is since last move
 //diff is since pointer down
@@ -42,6 +42,7 @@ pub fn pointer_up(scene:Rc<Scene>, x: i32, y: i32, delta_x: i32, delta_y: i32, d
 
 
 pub fn click(scene:Rc<Scene>, x: i32, y: i32) {
+    scene.renderer.update_entity_picker(x as u32, y as u32);
 }
 
 pub fn key_up(scene:Rc<Scene>, code: &str) {

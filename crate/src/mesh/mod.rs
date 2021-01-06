@@ -7,5 +7,6 @@ pub use traits::*;
 mod kinds;
 pub use kinds::*;
 
-pub mod meshes;
+mod meshes;
+pub use meshes::*;
 
