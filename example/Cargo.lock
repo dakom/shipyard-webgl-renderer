@@ -43,7 +43,9 @@ dependencies = [
 
 [[package]]
 name = "awsm_web"
-version = "0.15.1"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03a41409f426620ab0d5ab2e1e624f511412f09ec27ac385549a6f7094c87d3f"
 dependencies = [
  "beach_map",
  "discard",

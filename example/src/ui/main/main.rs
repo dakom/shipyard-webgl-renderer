@@ -1,10 +1,8 @@
 use dominator::{html, Dom, clone};
 use std::rc::Rc;
 use web_sys::HtmlCanvasElement;
-use crate::{
-    ui::state::State,
-    scene::Scene
-};
+use crate::ui::state::State;
+use crate::prelude::*;
 
 pub struct Main {
     state: Rc<State>

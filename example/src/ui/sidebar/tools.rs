@@ -3,10 +3,7 @@ use futures_signals::signal::{Mutable, SignalExt, Signal};
 use std::rc::Rc;
 use crate::ui::state::State;
 use super::Sidebar;
-use crate::scene::{
-    Scene,
-    entities::*
-};
+use crate::prelude::*;
 
 pub struct Tools {
 }

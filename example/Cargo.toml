@@ -13,9 +13,8 @@ opt-level = 's'
 [dependencies]
 # Awsm
 awsm_renderer = { path = "../crate"}
-# awsm_web = { version = "0.13.0", features = ["tick", "webgl", "loaders", "audio", "serde_iso"], default-features = false }
-
-awsm_web = { path = "../../awsm-web/crate", features = ["webgl", "loaders", "serde_iso", "dom", "tick"], default-features = false }
+awsm_web = { version = "0.16.0", features = ["webgl", "loaders", "serde_iso", "dom", "tick"], default-features = false }
+# awsm_web = { path = "../../awsm-web/crate", features = ["webgl", "loaders", "serde_iso", "dom", "tick"], default-features = false }
 
 shipyard = { git = "https://github.com/leudz/shipyard", branch = "no-panic-feature", features = ["non_send", "non_sync", "wasm", "serde1"], default-features = false }
 shipyard_scenegraph = { git = "https://github.com/dakom/shipyard-scenegraph", features = ["non_send", "non_sync", "nalgebra_math", "wasm"], default-features = false}

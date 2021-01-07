@@ -3,8 +3,8 @@ use awsm_renderer::prelude::*;
 use shipyard::*;
 use wasm_bindgen::prelude::*;
 use std::rc::Rc;
-use super::Scene;
 use awsm_renderer::camera::arc_ball::ArcBall;
+use crate::prelude::*;
 
 pub fn observe_resize(scene:Rc<Scene>) -> ResizeObserver {
 

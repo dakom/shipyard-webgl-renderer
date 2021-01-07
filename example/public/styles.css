@@ -102,3 +102,8 @@ aside .tool-help-btn {
     height: 50vh;
     border-radius: 5px;
 }
+
+aside select {
+    width: 90%;
+    font-size: x-large;
+}

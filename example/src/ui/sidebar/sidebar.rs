@@ -10,6 +10,7 @@ use super::{
     tools::Tools,
     help::Help,
     render_mode::RenderModeDom,
+    select_mode::SelectModeDom,
 };
 use wasm_bindgen::JsCast;
 
@@ -35,6 +36,10 @@ impl Sidebar {
                             .text("Render Mode")
                         }),
                         RenderModeDom::render(_self.clone()),
+                        html!("h3", {
+                            .text("Selection Mode")
+                        }),
+                        SelectModeDom::render(_self.clone()),
                         html!("header", {
                             .text("Create")
                         }),

@@ -1,14 +1,12 @@
-use shipyard_scenegraph::prelude::*;
 use wasm_bindgen::prelude::*;
-use std::rc::Rc;
 use awsm_renderer::prelude::*;
 use shipyard::*;
-use super::Scene;
 use awsm_renderer::camera::{
     arc_ball::ArcBall,
     screen_static::ScreenStatic
 };
 use nalgebra::Point3;
+use crate::prelude::*;
 
 pub struct CameraIds {
     pub arc_ball: EntityId,

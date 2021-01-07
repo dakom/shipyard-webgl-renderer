@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use super::scene::Scene;
+use super::init::Scene;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "dev")] {

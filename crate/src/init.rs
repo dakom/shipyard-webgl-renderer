@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::input::listeners::InputListeners;
 use std::rc::Rc;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -38,8 +39,9 @@ impl Renderer {
         //Screen buffers
         world.add_unique::<Option<DrawBuffers>>(None).unwrap_throw();
         world.add_unique::<Option<PickerBuffers>>(None).unwrap_throw();
+
+        //Stashed Entity
         world.add_unique::<EntityPicker>(EntityPicker(None)).unwrap_throw();
-        world.add_unique::<EntityPickerPosition>(EntityPickerPosition(None)).unwrap_throw();
 
         //set constant ubos
         world.add_unique_non_send_sync(ActiveCamera::new(&mut gl).unwrap_throw()).unwrap_throw();
@@ -57,6 +59,19 @@ impl Renderer {
         // Add the webgl renderer to the world
         world.add_unique_non_send_sync(gl).unwrap_throw();
 
+        //Input - not really _rendering_ but used too often to ignore
+        //maybe split to a different crate one day
+        
+        let input_listeners = {
+            if config.input_queue {
+                world.add_unique(InputQueue::new()).unwrap_throw();
+                Some(InputListeners::new(&canvas, world.clone()))
+            } else {
+                None
+            }
+        };
+
+
         // Create self
         Self {
             config,
@@ -64,7 +79,8 @@ impl Renderer {
             meshe_cache,
             shader_cache,
             program_cache,
-            textures: Textures::new()
+            textures: Textures::new(),
+            input_listeners,
         }
     }
 
