@@ -26,3 +26,6 @@ Though by the time it's done, WebGPU might be a thing... so we'll see :P
 The example additionally uses [Dominator](https://github.com/Pauan/rust-dominator) to tie it all together with a DOM-based UI
 
 
+### Local Dev
+
+clone `https://github.com/KhronosGroup/glTF-Sample-Models.git` into `demo/public/media/glTF-Sample-Models`

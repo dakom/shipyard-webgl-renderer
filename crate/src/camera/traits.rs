@@ -1,8 +1,15 @@
-use wasm_bindgen::prelude::*;
+use crate::prelude::*;
 use nalgebra::{Isometry3, Matrix4, Point2, Point3, Point4, Vector2, Vector3};
+use std::borrow::Cow;
 
-/// Cameras *must* implement these 
 pub trait CameraBase {
+    fn position(&self) -> Vector3<f64> {
+        let invView = self.projection_view_inverse();
+        Vector3::new(invView.m41, invView.m42, invView.m43)
+    }
+
+    fn projection_view_inverse(&self) -> &Matrix4<f64>; 
+
     /// The view matrix
     fn view(&self) -> &Matrix4<f64>;
     /// The projection matrix
