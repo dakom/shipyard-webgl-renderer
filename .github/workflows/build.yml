@@ -13,7 +13,7 @@ jobs:
 
     - name: install npm deps
       run: npm ci
-      working-directory: ./example
+      working-directory: ./demo
 
     - name: install rust nightly
       run: rustup toolchain install nightly
@@ -32,7 +32,7 @@ jobs:
       run: mkdir ./dist
 
     - name: copy example public to dist
-      run: cp -R ./example/public/* ./dist
+      run: cp -R ./demo/public/* ./dist
 
     - name: deploy to gh_pages
       uses: maxheld83/ghpages@master
