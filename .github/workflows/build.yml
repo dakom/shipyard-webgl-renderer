@@ -12,7 +12,7 @@ jobs:
       uses: actions/setup-node@v1
 
     - name: install npm deps
-      run: npm ci
+      run: npm install
       working-directory: ./demo
 
     - name: install rust nightly
