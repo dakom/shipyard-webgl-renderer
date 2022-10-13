@@ -16,7 +16,8 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "dev")] {
         pub const CONFIG: Lazy<Config> = Lazy::new(|| {
             Config {
-                init_gltf: Some(GltfId::InterpolationTest),
+                init_gltf: Some(GltfId::Box),
+                //init_gltf: Some(GltfId::InterpolationTest),
                 //init_gltf: Some(GltfId::SimpleSkin),
                 //init_gltf: Some(GltfId::SimpleMorph),
                 //init_gltf: Some(GltfId::AnimatedTriangle),

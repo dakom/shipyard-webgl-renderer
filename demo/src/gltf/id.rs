@@ -28,11 +28,12 @@ pub enum GltfId {
     // STANDARD 
     // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#standard 
 
+    Box,
 }
 
 impl GltfId {
-    pub fn list() -> &'static [Self] {
-        &[
+    pub fn list() -> Vec<Self> {
+        let mut v = vec![
             Self::TriangleWithoutIndices,
             Self::Triangle,
             Self::SimpleSparseAccessor,
@@ -43,7 +44,12 @@ impl GltfId {
             Self::AnimatedMorphSphere,
             Self::SimpleSkin,
             Self::InterpolationTest,
-        ]
+            Self::Box,
+        ];
+
+        v.sort_by(|a, b| a.label().cmp(b.label()));
+
+        v
     }
 
     pub fn filepath(&self) -> &'static str {
@@ -58,21 +64,23 @@ impl GltfId {
             Self::AnimatedMorphSphere => "AnimatedMorphSphere/glTF/AnimatedMorphSphere.gltf",
             Self::SimpleSkin => "SimpleSkin/glTF/SimpleSkin.gltf",
             Self::InterpolationTest => "InterpolationTest/glTF/InterpolationTest.gltf",
+            Self::Box => "Box/glTF/Box.gltf",
         }
     }
 
     pub fn label(&self) -> &'static str {
         match self {
-            Self::TriangleWithoutIndices => "Triangle without indices",
-            Self::Triangle => "Triangle",
-            Self::SimpleSparseAccessor => "Simple Sparse Accessor",
-            Self::SimpleMeshes => "Simple Meshes",
-            Self::SimpleMorph => "Simple Morph",
-            Self::AnimatedTriangle => "Animated Triangle",
-            Self::AnimatedMorphCube => "Animated Morph Cube",
-            Self::AnimatedMorphSphere => "Animated Morph Sphere",
-            Self::SimpleSkin => "SimpleSkin",
-            Self::InterpolationTest => "InterpolationTest",
+            Self::TriangleWithoutIndices => "Minimal/Triangle without indices",
+            Self::Triangle => "Minimal/Triangle",
+            Self::SimpleSparseAccessor => "Minimal/Simple Sparse Accessor",
+            Self::SimpleMeshes => "Minimal/Simple Meshes",
+            Self::SimpleMorph => "Minimal/Simple Morph",
+            Self::AnimatedTriangle => "Minimal/Animated Triangle",
+            Self::AnimatedMorphCube => "Minimal/Animated Morph Cube",
+            Self::AnimatedMorphSphere => "Minimal/Animated Morph Sphere",
+            Self::SimpleSkin => "Minimal/SimpleSkin",
+            Self::InterpolationTest => "Minimal/InterpolationTest",
+            Self::Box => "Simple/Box",
         }
     }
 
@@ -98,6 +106,9 @@ impl GltfId {
             },
             Self::InterpolationTest => {
                 Point3::new(0.0, 0.0, 30.0)
+            },
+            Self::Box => {
+                Point3::new(2.0, 2.0, 2.0)
             },
 
             _ => Point3::new(0.0, 0.0, 4.0)

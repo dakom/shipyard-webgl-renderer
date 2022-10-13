@@ -50,7 +50,7 @@ impl Sidebar {
 
         Dropdown::new("Choose a Gltf".to_string(), state.home.gltf.get(), GltfId::list()
             .into_iter()
-            .map(|x| DropdownOption::new(*x, x.label().to_string()))
+            .map(|x| DropdownOption::new(x, x.label().to_string()))
             .collect()
         ).render(clone!(state => move |opt| {
             state.home.gltf.set(Some(opt.id));
