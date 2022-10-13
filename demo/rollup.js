@@ -1,8 +1,8 @@
-import rust from "@wasm-tool/rollup-plugin-rust";
-import serve from "rollup-plugin-serve";
-import livereload from "rollup-plugin-livereload";
-import injectProcessEnv from 'rollup-plugin-inject-process-env';
-import json from 'rollup-plugin-json';
+const rust = require("@wasm-tool/rollup-plugin-rust");
+const serve = require("rollup-plugin-serve");
+const livereload = require("rollup-plugin-livereload");
+const injectProcessEnv = require('rollup-plugin-inject-process-env');
+const json = require('rollup-plugin-json');
 
 require('dotenv').config({ path: require("path").resolve('../.env') })
 

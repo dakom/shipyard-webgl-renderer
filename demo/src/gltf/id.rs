@@ -11,6 +11,8 @@ use crate::config::{
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GltfId {
+    // MINIMAL
+    // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#minimal-tests
     TriangleWithoutIndices,
     Triangle,
     SimpleSparseAccessor,
@@ -21,6 +23,11 @@ pub enum GltfId {
     AnimatedMorphSphere,
     SimpleSkin,
     InterpolationTest,
+    // skipping unicode test...
+
+    // STANDARD 
+    // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#standard 
+
 }
 
 impl GltfId {
