@@ -17,11 +17,11 @@ jobs:
       run: npm install
       working-directory: ./demo
 
-    - name: install rust nightly
-      run: rustup toolchain install nightly
+    #- name: install rust nightly
+      #run: rustup toolchain install nightly
 
-    - name: make nightly the default
-      run: rustup default nightly
+    #- name: make nightly the default
+      #run: rustup default nightly
 
     - name: add rust target
       run: rustup target add wasm32-unknown-unknown
