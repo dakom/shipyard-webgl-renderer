@@ -26,7 +26,7 @@ jobs:
 
     - name: build for release 
       run: npm run build 
-      working-directory: ./example
+      working-directory: ./demo
 
     - name: create dist directory
       run: mkdir ./dist
