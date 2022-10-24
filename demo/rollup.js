@@ -61,7 +61,7 @@ if(buildMode === "dev") {
 } else {
     config.plugins = [
         rust({
-            serverPath: "/wasm/",
+            serverPath: "/awsm-renderer/wasm/",
             debug: false,
         }),
         ...commonPlugins

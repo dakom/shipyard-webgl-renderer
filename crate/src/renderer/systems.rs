@@ -35,7 +35,6 @@ pub fn render_sys(
 
 
             let mut world_transform_buf:[f32;16] = [0.0;16];
-
             // forward vs. deferred is not totally right yet
             // but the buffers are sorta kinda setup ish
             // (probably just get rid of deferred and rely on culling)
@@ -71,6 +70,14 @@ pub fn render_sys(
                         if let Ok(skin_joint) = mesh_skin_joints.get(*skin_joint_entity) {
                             skin_joint.world_transform.write_to_vf32(&mut world_transform_buf);
                             gl.upload_uniform_mat_4_name(&format!("u_skin_joint[{}]", i), &world_transform_buf)?;
+                        }
+                    }
+
+                    match material {
+                        Material::Pbr(pbr) => {
+                            gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.metallic_roughness.base_color_factor.as_slice());
+                            let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, 0.0];
+                            gl.upload_uniform_fvec_name("u_metallic_roughness", UniformType::Vector2, &metallic_roughness);
                         }
                     }
 

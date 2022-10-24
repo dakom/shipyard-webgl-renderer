@@ -1,8 +1,8 @@
 use crate::{
     prelude::*, 
-    gltf::component::GltfPrimitive, 
+    gltf::{component::GltfPrimitive, material::make_gltf_material}, 
     animation::clip::AnimationClip,
-    renderer::shaders::{MeshVertexShader, MeshFragmentShader, SkinTarget},
+    renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget},
 };
 use anyhow::bail;
 use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}};
@@ -82,8 +82,8 @@ impl AwsmRenderer {
         } else {
 
             let mut buffer_ids = Vec::new();
-            let mut vertex_shader = MeshVertexShader::default();
-            let mut fragment_shader = MeshFragmentShader::default();
+            let mut vertex_shader = MeshVertexShaderKey::default();
+            let mut fragment_shader = MeshFragmentShaderKey::default();
 
             let vao_id = self.gl.create_vertex_array()?;
 
@@ -220,6 +220,12 @@ impl AwsmRenderer {
                 None 
             };
 
+            let material = make_gltf_material(world, res, primitive.material())?;
+            match &material {
+                Material::Pbr(pbr) => {
+                    fragment_shader.material = Some(pbr.into());
+                }
+            }
 
             let program_id = self.shaders.mesh_program(&mut self.gl, vertex_shader, fragment_shader)?;
 
@@ -254,8 +260,6 @@ impl AwsmRenderer {
                     }
                 }
             };
-
-            let material = Material {};
 
 
             DataToAdd {

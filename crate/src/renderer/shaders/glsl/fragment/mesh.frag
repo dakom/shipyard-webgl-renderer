@@ -7,6 +7,7 @@ precision highp int;
 % INCLUDES_NORMALS %
 % INCLUDES_VECTORS %
 % INCLUDES_LIGHT %
+% INCLUDES_MATERIAL %
 
 out vec4 diffuse; 
 
@@ -19,5 +20,11 @@ void main() {
     Light light = getDirectionalLight(vectors, lightDirection, lightColor, lightIntensity);
     //LIGHTS_FUNCS += `color += getLightColor(pbr, fragment, light);\n`;
     vec3 color = light.NdotL * light.color * light.falloff * light.intensity;
-    diffuse = vec4(color, 1.0);
+
+    #ifdef PBR_MATERIAL
+        Pbr pbr = getPbr();
+        diffuse = pbr.baseColor;
+    #else
+        diffuse = vec4(color, 1.0);
+    #endif
 }

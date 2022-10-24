@@ -1,9 +1,7 @@
-
 use crate::{
     prelude::*, 
     gltf::component::GltfPrimitive, 
     animation::clip::AnimationClip,
-    renderer::shaders::{MeshVertexShader, MeshFragmentShader},
 };
 use anyhow::bail;
 use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}};

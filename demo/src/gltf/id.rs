@@ -27,13 +27,14 @@ pub enum GltfId {
 
     // STANDARD 
     // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#standard 
-
     Box,
+    BoxInterleaved
 }
 
 impl GltfId {
     pub fn list() -> Vec<Self> {
         let mut v = vec![
+            // Minimal
             Self::TriangleWithoutIndices,
             Self::Triangle,
             Self::SimpleSparseAccessor,
@@ -44,7 +45,10 @@ impl GltfId {
             Self::AnimatedMorphSphere,
             Self::SimpleSkin,
             Self::InterpolationTest,
+
+            // Standard
             Self::Box,
+            Self::BoxInterleaved,
         ];
 
         v.sort_by(|a, b| a.label().cmp(b.label()));
@@ -54,6 +58,7 @@ impl GltfId {
 
     pub fn filepath(&self) -> &'static str {
         match self {
+            // Minimal
             Self::TriangleWithoutIndices => "TriangleWithoutIndices/glTF/TriangleWithoutIndices.gltf",
             Self::Triangle => "Triangle/glTF/Triangle.gltf",
             Self::SimpleSparseAccessor => "SimpleSparseAccessor/glTF/SimpleSparseAccessor.gltf",
@@ -64,12 +69,16 @@ impl GltfId {
             Self::AnimatedMorphSphere => "AnimatedMorphSphere/glTF/AnimatedMorphSphere.gltf",
             Self::SimpleSkin => "SimpleSkin/glTF/SimpleSkin.gltf",
             Self::InterpolationTest => "InterpolationTest/glTF/InterpolationTest.gltf",
+
+            // Standard
             Self::Box => "Box/glTF/Box.gltf",
+            Self::BoxInterleaved => "BoxInterleaved/glTF/BoxInterleaved.gltf",
         }
     }
 
     pub fn label(&self) -> &'static str {
         match self {
+            // Minimal
             Self::TriangleWithoutIndices => "Minimal/Triangle without indices",
             Self::Triangle => "Minimal/Triangle",
             Self::SimpleSparseAccessor => "Minimal/Simple Sparse Accessor",
@@ -80,7 +89,10 @@ impl GltfId {
             Self::AnimatedMorphSphere => "Minimal/Animated Morph Sphere",
             Self::SimpleSkin => "Minimal/SimpleSkin",
             Self::InterpolationTest => "Minimal/InterpolationTest",
-            Self::Box => "Simple/Box",
+
+            // Standard
+            Self::Box => "Standard/Box",
+            Self::BoxInterleaved => "Standard/BoxInterleaved",
         }
     }
 
@@ -107,7 +119,7 @@ impl GltfId {
             Self::InterpolationTest => {
                 Point3::new(0.0, 0.0, 30.0)
             },
-            Self::Box => {
+            Self::Box | Self::BoxInterleaved => {
                 Point3::new(2.0, 2.0, 2.0)
             },
 

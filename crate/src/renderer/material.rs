@@ -2,8 +2,12 @@ use awsm_web::webgl::{WebGl2Renderer, BeginMode, DataType};
 use crate::prelude::*;
 use super::cleanup::DestroyWithGl;
 
+mod pbr;
+pub use pbr::*;
+
 #[derive(Component, Clone, Debug)]
-pub struct Material {
+pub enum Material {
+    Pbr(PbrMaterial)
 }
 
 impl DestroyWithGl for Material {
@@ -11,7 +15,6 @@ impl DestroyWithGl for Material {
         Ok(())
     }
 }
-
 
 #[derive(Component, Clone, Debug)]
 pub struct MaterialForward {}
