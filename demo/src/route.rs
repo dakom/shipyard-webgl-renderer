@@ -25,7 +25,11 @@ impl Route {
     }
 
     pub fn go_to_url(&self) {
-        let s: String = self.into();
+        let mut s: String = self.into();
+        if !URI_ROOT.is_empty() {
+            s = format!("{}/{}", URI_ROOT, s);
+        }
+
         dominator::routing::go_to_url(&s);
     }
 
@@ -44,7 +48,14 @@ impl Route {
     pub fn from_url(url: &str) -> Self {
         let url = Url::new(url).unwrap_ext();
         let paths = url.pathname();
-        let paths = paths.split('/').into_iter().skip(1).collect::<Vec<_>>();
+        let mut paths = paths.split('/')
+            .into_iter()
+            .skip(if URI_ROOT.is_empty() {
+                1
+            } else {
+                2
+            })
+            .collect::<Vec<_>>();
         let paths = paths.as_slice();
         //let params_map = url.search_params();
 

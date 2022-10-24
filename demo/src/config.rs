@@ -14,6 +14,8 @@ pub const DEFAULT_SCREEN_STATIC_FAR_PLANE:f64 = 10_100.0;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "dev")] {
+        // for github pages etc. where website isn't at root
+        pub const URI_ROOT:&'static str = "";
         pub const CONFIG: Lazy<Config> = Lazy::new(|| {
             Config {
                 init_gltf: Some(GltfId::Box),
@@ -26,6 +28,8 @@ cfg_if::cfg_if! {
             }
         });
     } else {
+        // for github pages etc. where website isn't at root
+        pub const URI_ROOT:&'static str = "awsm-renderer";
         pub const CONFIG: Lazy<Config> = Lazy::new(|| {
             Config {
                 init_gltf: None,
