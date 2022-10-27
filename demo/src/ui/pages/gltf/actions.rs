@@ -4,7 +4,7 @@ use crate::gltf::actions::switch_gltf;
 use crate::camera::CameraKind as LocalCameraKind;
 use awsm_renderer::camera::CameraKind;
 
-impl Home {
+impl GltfPage {
     pub fn load_gltf(self: Rc<Self>, id: GltfId) {
         let state = self;
 

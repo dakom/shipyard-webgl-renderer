@@ -12,13 +12,13 @@ impl Sidebar {
             .child(html!("div", {
                 .class(["flex", "flex-row"])
                 .child_signal(
-                    state.home.world.signal_cloned().map(clone!(state => move |world| {
+                    state.page.world.signal_cloned().map(clone!(state => move |world| {
                         Some(match world {
                             Some(_) => {
 
                                 let sig = map_ref! {
-                                    let gltf_id = state.home.gltf.signal(),
-                                    let camera = state.home.camera.signal()
+                                    let gltf_id = state.page.gltf.signal(),
+                                    let camera = state.page.camera.signal()
                                         => {
                                             match (*gltf_id, *camera) {
                                                 (Some(gltf_id), Some(camera)) => Some((gltf_id, camera)),
@@ -48,25 +48,34 @@ impl Sidebar {
     fn render_gltf_selector(self: Rc<Self>) -> Dom {
         let state = self;
 
-        Dropdown::new("Choose a Gltf".to_string(), state.home.gltf.get(), GltfId::list()
+        Dropdown::new("Choose a Gltf".to_string(), state.page.gltf.get(), GltfId::list()
             .into_iter()
             .map(|x| DropdownOption::new(x, x.label().to_string()))
             .collect()
         ).render(clone!(state => move |opt| {
-            state.home.gltf.set(Some(opt.id));
+            match state.page.gltf.get_cloned() {
+                None => {
+                    Route::Gltf(Some(opt.id)).go_to_url();
+                },
+                Some(id) => {
+                    state.page.gltf.set(Some(opt.id));
+                    Route::Gltf(Some(opt.id)).push_state();
+                }
+            }
+
         }))
     }
 
     fn render_camera_selector(self: Rc<Self>, gltf_id: GltfId, camera: CameraKind) -> Dom {
         let state = self;
 
-        Dropdown::new("Choose a Camera".to_string(), state.home.camera.get_cloned().map(|c| c.label()), CameraKind::label_list()
+        Dropdown::new("Choose a Camera".to_string(), state.page.camera.get_cloned().map(|c| c.label()), CameraKind::label_list()
             .into_iter()
             .map(|x| DropdownOption::new(*x, x.to_string()))
             .collect()
         ).render(clone!(state => move |opt| {
-            if let Some(world) = state.home.world.get_cloned() {
-                let renderer = state.home.renderer_cell();
+            if let Some(world) = state.page.world.get_cloned() {
+                let renderer = state.page.renderer_cell();
                 let renderer = &mut *renderer.borrow_mut();
                 let (_, _, width, height) = renderer.get_viewport();
 
@@ -78,7 +87,7 @@ impl Sidebar {
                     _ => unimplemented!()
                 };
 
-                state.home.camera.set(Some(camera));
+                state.page.camera.set(Some(camera));
             }
         }))
     }

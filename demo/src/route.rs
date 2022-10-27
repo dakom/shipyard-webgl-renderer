@@ -7,6 +7,7 @@ use web_sys::Url;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Route {
     Home,
+    Gltf(Option<GltfId>),
     NotFound,
 }
 
@@ -68,6 +69,8 @@ impl Route {
 
         match paths {
             [""] => Self::Home,
+            ["gltf", id] => Self::Gltf(Some((*id).into())),
+            ["gltf"] => Self::Gltf(None),
             _ => Self::NotFound,
         }
     }
@@ -83,6 +86,12 @@ impl From<&Route> for String {
     fn from(route: &Route) -> Self {
         match route {
             Route::Home => "/".to_string(),
+            Route::Gltf(id) => {
+                match id {
+                    None => "/gltf".to_string(),
+                    Some(id) => format!("/gltf/{:?}", id)
+                }
+            },
             Route::NotFound => "404".to_string(),
         }
     }

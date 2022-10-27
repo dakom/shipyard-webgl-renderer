@@ -30,6 +30,13 @@ jobs:
       run: npm run build 
       working-directory: ./demo
 
+    - name: patch the index files 
+      run: npm run prod-patch
+      working-directory: ./demo
+
+    - run: mv ./public/prod-index.html ./public/index.html
+    - run: mv ./public/prod-404.html ./public/404.html
+
     - name: create dist directory
       run: mkdir ./dist
 

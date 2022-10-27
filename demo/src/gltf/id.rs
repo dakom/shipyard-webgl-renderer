@@ -31,6 +31,20 @@ pub enum GltfId {
     BoxInterleaved
 }
 
+impl From<&str> for GltfId {
+    fn from(s:&str) -> Self {
+        let list = Self::list();
+        for id in list {
+            let label = format!("{:?}", id);
+            if label == s {
+                return id
+            }
+        }
+
+        panic!("{} is not a valid GltfId", s);
+    }
+}
+
 impl GltfId {
     pub fn list() -> Vec<Self> {
         let mut v = vec![

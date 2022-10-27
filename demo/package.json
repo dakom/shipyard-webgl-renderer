@@ -4,6 +4,7 @@
     "license": "(MIT OR Apache-2.0)",
     "scripts": {
         "build": "npm run clean && npm run build:css && cross-env BUILD_MODE=release rollup --bundleConfigAsCjs --config rollup.js",
+        "prod-patch": "node ./prod-patch.js",
         "start": "npm run clean && npm run build:css && run-p watch:css _dev",
         "build:css": "postcss src/styles/main.css --output public/css/main.css",
         "watch:css": "npm run build:css -- --watch",
