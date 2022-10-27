@@ -25,24 +25,28 @@ impl Route {
             .map(|url| Self::from_url(&url))
     }
 
-    pub fn go_to_url(&self) {
+    pub fn into_uri(&self) -> String {
         let mut s: String = self.into();
         if !URI_ROOT.is_empty() {
             s = format!("{}/{}", URI_ROOT, s);
         }
 
-        dominator::routing::go_to_url(&s);
+        s
+    }
+
+    pub fn go_to_uri(&self) {
+        dominator::routing::go_to_url(&self.into_uri());
     }
 
     pub fn hard_redirect(&self) {
         let location = web_sys::window().unwrap_ext().location();
-        let s: String = self.into();
+        let s: String = self.into_uri();
         location.set_href(&s).unwrap_ext();
     }
 
     pub fn push_state(&self) {
         let history = web_sys::window().unwrap_ext().history().unwrap_ext();
-        let url: String = self.into();
+        let url: String = self.into_uri();
         let _ = history.push_state_with_url(&JsValue::NULL, "", Some(&url));
     }
 
