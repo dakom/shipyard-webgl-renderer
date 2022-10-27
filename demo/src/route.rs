@@ -34,7 +34,7 @@ impl Route {
         s
     }
 
-    pub fn go_to_uri(&self) {
+    pub fn go_to_url(&self) {
         dominator::routing::go_to_url(&self.into_uri());
     }
 
