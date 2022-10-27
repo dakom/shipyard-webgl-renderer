@@ -28,7 +28,7 @@ impl Route {
     pub fn into_uri(&self) -> String {
         let mut s: String = self.into();
         if !URI_ROOT.is_empty() {
-            s = format!("/{}/{}", URI_ROOT, s);
+            s = format!("/{}{}", URI_ROOT, s);
         }
 
         s
