@@ -9,10 +9,10 @@ struct Light
     float intensity;
 };
 
-Light getDirectionalLight(Vectors vectors, vec3 lightDirection, vec3 color, float intensity) {
-    vec3 N = vectors.normal;
-    vec3 V = vectors.surfaceToCamera;
-    float NdotV = vectors.NdotV;
+Light getDirectionalLight(FragmentVectors fvectors, vec3 lightDirection, vec3 color, float intensity) {
+    vec3 N = fvectors.normal;
+    vec3 V = fvectors.surfaceToCamera;
+    float NdotV = fvectors.NdotV;
 
     vec3 L = -normalize(lightDirection); // Light Direction
     vec3 H = normalize(L+V); // Half vector between both l and v

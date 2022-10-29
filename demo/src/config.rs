@@ -18,7 +18,7 @@ cfg_if::cfg_if! {
         pub const URI_ROOT:&'static str = "";
         pub const CONFIG: Lazy<Config> = Lazy::new(|| {
             Config {
-                init_gltf: Some(GltfId::Box),
+                init_gltf: Some(GltfId::BoxInterleaved),
                 //init_gltf: Some(GltfId::InterpolationTest),
                 //init_gltf: Some(GltfId::SimpleSkin),
                 //init_gltf: Some(GltfId::SimpleMorph),

@@ -19,6 +19,7 @@ mod vertex;
 pub use vertex::*;
 
 pub(super) const COMMON_CAMERA:&'static str = include_str!("./shaders/glsl/common/camera.glsl");
+pub(super) const COMMON_HELPERS:&'static str = include_str!("./shaders/glsl/common/helpers.glsl");
 
 pub struct ShaderCache {
     pub(crate) programs: ProgramCache,

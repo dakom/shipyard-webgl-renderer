@@ -14,7 +14,7 @@ in vec2 v_uv;
     uniform float u_normal_scale;
 #endif
 
-struct Vectors 
+struct FragmentVectors 
 {
     vec3 normal; // fragment normal
     vec3 surfaceToCamera; //normalized vector from surface point to camera
@@ -56,13 +56,12 @@ vec3 getNormal()
     return n;
 }
 
-//Get Fragment info
-Vectors getVectors() {
+FragmentVectors getFragmentVectors() {
     Camera camera = getCamera();
 
     vec3 normal = getNormal();
     vec3 surfaceToCamera = normalize(camera.position - v_pos); 
     vec3 reflection = -normalize(reflect(surfaceToCamera, normal));
     float NdotV = abs(dot(normal, surfaceToCamera)) + 0.001;
-    return Vectors(normal, surfaceToCamera, reflection, NdotV);
+    return FragmentVectors(normal, surfaceToCamera, reflection, NdotV);
 }

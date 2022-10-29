@@ -4,12 +4,13 @@ use awsm_web::webgl::{Id, WebGl2Renderer, ShaderType};
 use beach_map::{BeachMap, DefaultVersion};
 use rustc_hash::FxHashMap;
 
-use super::COMMON_CAMERA;
+use super::{COMMON_CAMERA, COMMON_HELPERS};
 
 const MESH_FRAGMENT_BASE:&'static str = include_str!("./glsl/fragment/mesh.frag");
-const FRAGMENT_HELPERS_VECTORS:&'static str = include_str!("./glsl/fragment/helpers/vectors.glsl");
-const FRAGMENT_HELPERS_LIGHT:&'static str = include_str!("./glsl/fragment/helpers/light.glsl");
+const FRAGMENT_VECTORS:&'static str = include_str!("./glsl/fragment/vectors.glsl");
+const FRAGMENT_LIGHTING_LIGHT:&'static str = include_str!("./glsl/fragment/lighting/light.glsl");
 const FRAGMENT_MATERIAL_PBR:&'static str = include_str!("./glsl/fragment/material/pbr.frag");
+const FRAGMENT_MATERIAL_PBR_LIGHT:&'static str = include_str!("./glsl/fragment/material/pbr-light.frag");
 
 pub(crate) struct FragmentCache {
     pub unlit_diffuse: Id,
@@ -26,6 +27,8 @@ impl FragmentCache {
         })
     }
 
+    // we only need to compile the shader once ever per a given key
+    // after that, it's cached in memory and merely re-used for programs
     pub fn mesh_shader(&mut self, mut gl:&mut WebGl2Renderer, info: MeshFragmentShaderKey) -> Result<Id> {
         match self.mesh.entry(info.clone()) {
             Entry::Occupied(entry) => Ok(entry.get().clone()),
@@ -51,9 +54,10 @@ pub struct MeshFragmentShaderKey {
 impl MeshFragmentShaderKey {
     fn into_code(&self) -> Result<String> {
         let mut res = MESH_FRAGMENT_BASE
+            .replace("% INCLUDES_HELPERS %", COMMON_HELPERS)
             .replace("% INCLUDES_CAMERA %", COMMON_CAMERA)
-            .replace("% INCLUDES_VECTORS %", FRAGMENT_HELPERS_VECTORS)
-            .replace("% INCLUDES_LIGHT %", FRAGMENT_HELPERS_LIGHT);
+            .replace("% INCLUDES_VECTORS %", FRAGMENT_VECTORS)
+            .replace("% INCLUDES_LIGHT %", FRAGMENT_LIGHTING_LIGHT);
 
         res = res.replace("% INCLUDES_NORMALS %", {
             if self.varying_normals {
@@ -102,7 +106,7 @@ pub struct MeshFragmentShaderMaterialPbrKey {
 
 impl MeshFragmentShaderMaterialPbrKey {
     fn into_code(&self) -> Result<String> {
-        Ok(FRAGMENT_MATERIAL_PBR.to_string())
+        Ok(format!("{}\n{}", FRAGMENT_MATERIAL_PBR, FRAGMENT_MATERIAL_PBR_LIGHT))
     }
 }
 

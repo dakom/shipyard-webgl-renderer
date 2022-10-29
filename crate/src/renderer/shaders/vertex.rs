@@ -6,7 +6,7 @@ use std::collections::hash_map::Entry;
 
 const MESH_VERTEX_BASE:&'static str = include_str!("./glsl/vertex/mesh.vert");
 
-use super::COMMON_CAMERA;
+use super::{COMMON_CAMERA, COMMON_HELPERS};
 
 pub(crate) struct VertexCache {
     pub quad_unit: Id,
@@ -65,6 +65,7 @@ pub struct SkinTarget {
 impl MeshVertexShaderKey {
     fn into_code(&self) -> Result<String> {
         let mut res = MESH_VERTEX_BASE
+            .replace("% INCLUDES_HELPERS %", COMMON_HELPERS)
             .replace("% INCLUDES_CAMERA %", COMMON_CAMERA);
 
         res = res.replace("% INCLUDES_NORMALS %", {

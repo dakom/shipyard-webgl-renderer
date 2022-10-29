@@ -1,6 +1,7 @@
 #version 300 es
 precision mediump float;
 
+% INCLUDES_HELPERS %
 % INCLUDES_CAMERA %
 
 % INCLUDES_NORMALS %
