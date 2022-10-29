@@ -77,6 +77,7 @@ pub fn render_sys(
                         Material::Pbr(pbr) => {
                             gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.metallic_roughness.base_color_factor.as_slice());
                             let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, 0.0];
+
                             gl.upload_uniform_fvec_name("u_metallic_roughness", UniformType::Vector2, &metallic_roughness);
                         }
                     }

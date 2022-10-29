@@ -106,6 +106,7 @@ pub struct MeshFragmentShaderMaterialPbrKey {
 
 impl MeshFragmentShaderMaterialPbrKey {
     fn into_code(&self) -> Result<String> {
+
         Ok(format!("{}\n{}", FRAGMENT_MATERIAL_PBR, FRAGMENT_MATERIAL_PBR_LIGHT))
     }
 }

@@ -101,14 +101,19 @@ impl AwsmRenderer {
             for (semantic, accessor) in primitive.attributes() {
                 match semantic {
                     Semantic::Positions => {
+                        //log::info!("POSITIONS");
+                        //log::info!("{:#?}", gltf_accessor_to_vec3s(res, &accessor)?);
                         let loc = NameOrLoc::Loc(ATTRIBUTE_POSITION);
                         let data = self.upload_accessor_to_vao_data(res, &accessor, loc, Some(BufferTarget::ArrayBuffer))?;
                         buffer_ids.push(data.buffer_id.clone());
                         vao_data.push(data);
                     },
                     Semantic::Normals => {
+                        //log::info!("NORMALS");
+                        //log::info!("{:#?}", gltf_accessor_to_vec3s(res, &accessor)?);
                         vertex_shader.attribute_normals = true;
                         fragment_shader.varying_normals = true;
+
                         let loc = NameOrLoc::Loc(ATTRIBUTE_NORMAL);
                         let data = self.upload_accessor_to_vao_data(res, &accessor, loc, Some(BufferTarget::ArrayBuffer))?;
                         buffer_ids.push(data.buffer_id.clone());
