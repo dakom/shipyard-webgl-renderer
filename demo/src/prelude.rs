@@ -3,8 +3,8 @@ pub use awsm_web::prelude::*;
 pub use awsm_renderer::prelude::*;
 pub use dominator::{Dom, html, clone, with_node, events};
 pub use futures_signals::{
-    signal::{Mutable, SignalExt},
-    signal_vec::{MutableVec, SignalVecExt},
+    signal::{Mutable, Signal, SignalExt},
+    signal_vec::{MutableVec, SignalVec, SignalVecExt},
     map_ref
 };
 pub use std::rc::Rc;

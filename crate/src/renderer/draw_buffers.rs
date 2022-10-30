@@ -38,22 +38,23 @@ pub struct DrawBuffers {
     pub width: u32,
     pub height: u32,
     pub clear_color: [f32;4],
-    pub framebuffer_id: Id,
-    pub renderbuffer_id: Id,
-    pub composite_program_id: Id,
-    pub textures: DrawBufferTextures,
-    pub composite: Composite,
-    pub blit: Blit,
-    pub quad: Quad,
+    pub fbo_primary: FrameBuffer,
+    pub fbo_secondary: Option<FrameBuffer>,
+    pub mode: DrawBufferMode
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum DrawBufferMode {
+    Regular,
+    Multisample
 }
 
 impl DestroyWithGl for DrawBuffers {
     fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.delete_framebuffer(self.framebuffer_id)?;
-        gl.delete_renderbuffer(self.renderbuffer_id)?;
-        self.textures.destroy(&mut gl)?;
-        self.composite.destroy(&mut gl)?;
-        self.quad.destroy(&mut gl)?;
+        self.fbo_primary.destroy(&mut gl)?;
+        if let Some(fbo) = self.fbo_secondary.as_mut() {
+            fbo.destroy(&mut gl)?;
+        }
         Ok(())
     }
 }
@@ -62,103 +63,73 @@ impl DestroyWithGl for DrawBuffers {
 //https://stackoverflow.com/questions/51101023/render-to-16bits-unsigned-integer-2d-texture-in-webgl2
 //
 impl DrawBuffers {
-    pub fn new(renderer: &mut AwsmRenderer) -> Result<Self> {
+    pub fn new(renderer: &mut AwsmRenderer, mode: DrawBufferMode) -> Result<Self> {
         let (_, _, width, height) = renderer.gl.get_viewport();
         let composite_program_id = renderer.shaders.programs.draw_buffers_composite;
         let clear_color = renderer.config.clear_color;
-        let gl = &mut renderer.gl;
-        let quad = Quad::new(gl)?;
+        //let quad = Quad::new(gl)?;
 
-        //Main framebuffer
-        let framebuffer_id = gl.create_framebuffer()?;
-
-        //Depth
-        let renderbuffer_id = gl.create_renderbuffer()?;
-
-        gl.assign_renderbuffer_storage(renderbuffer_id, RenderBufferFormat::DepthComponent32f, width, height)?;
-        gl.assign_framebuffer_renderbuffer(framebuffer_id, renderbuffer_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Depth)?;
-
-        let textures = DrawBufferTextures::new(gl, width, height)?;
-
-        gl.assign_framebuffer_texture_2d(framebuffer_id, textures.diffuse_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0, FrameBufferTextureTarget::Texture2d)?;
-
-        //set the draw buffer targets
-        gl.draw_buffers(&vec![DrawBuffer::Color0])?;
-
-        //make sure we're all good
-        gl.check_framebuffer_status(FrameBufferTarget::DrawFrameBuffer)?;
-
-        //unbind everything
-        gl.release_renderbuffer();
-        gl.release_framebuffer(FrameBufferTarget::DrawFrameBuffer);
-        gl.release_texture_target(TextureTarget::Texture2d);
+        renderer.gl.set_clear_color(0.0, 0.0,0.0,0.0);
 
 
-        let composite = Composite::new(gl, &textures, width, height)?;
-        let blit = Blit::new(gl, width, height)?;
+        let multisample = mode == DrawBufferMode::Multisample;
 
-        // unbind everything again
-        gl.release_renderbuffer();
-        gl.release_framebuffer(FrameBufferTarget::DrawFrameBuffer);
-        gl.release_texture_target(TextureTarget::Texture2d);
+        let fbo_primary = FrameBuffer::new(renderer)?
+                    .build_depth(renderer, width, height, FrameBufferIdKind::Render, multisample)?
+                    .build_color(renderer, width, height, FrameBufferIdKind::Render, multisample)?
+                    .validate(renderer)?;
 
-        //now to setup the blit framebuffer
-        Ok(Self{
+        renderer.gl.draw_buffers(&vec![DrawBuffer::Color0])?;
+
+        fbo_primary.release(renderer);
+
+        let fbo_secondary = match mode {
+            DrawBufferMode::Regular => None,
+            DrawBufferMode::Multisample => {
+                let fbo = FrameBuffer::new(renderer)?
+                    .build_depth(renderer, width, height, FrameBufferIdKind::Render, false)?
+                    .build_color(renderer, width, height, FrameBufferIdKind::Render, false)?
+                    .validate(renderer)?;
+
+                fbo.release(renderer);
+                Some(fbo)
+            }
+        };
+
+        Ok(Self {
             width,
             height,
-            framebuffer_id,
-            renderbuffer_id,
-            composite_program_id,
-            quad,
-            textures,
-            composite,
-            blit,
-            clear_color
+            clear_color,
+            fbo_primary,
+            fbo_secondary,
+            mode
         })
     }
 
-    pub fn init(&self, gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.bind_framebuffer(self.framebuffer_id, FrameBufferTarget::DrawFrameBuffer)?;
-        gl.reset_depth_stencil_draw_buffer();
-        gl.reset_color_draw_buffer_vf32(0);
-        Ok(())
-    }
+    pub fn pre_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
 
-    pub fn composite(&self, mut gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.bind_framebuffer(self.composite.framebuffer_id, FrameBufferTarget::DrawFrameBuffer)?;
+        gl.bind_framebuffer(self.fbo_primary.id, FrameBufferTarget::DrawFrameBuffer)?;
         gl.reset_depth_stencil_draw_buffer();
         gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
 
-
-        gl.toggle(GlToggle::DepthTest, true);
-        gl.toggle(GlToggle::Blend, true);
-        gl.activate_program(self.composite_program_id)?; 
-        gl.activate_texture_for_sampler_name(self.textures.diffuse_id, "u_diffuse_sampler")?;
-        gl.activate_vertex_array(self.quad.vao_id)?;
-        gl.draw_arrays(BeginMode::TriangleStrip, 0, 4);
         Ok(())
     }
 
+    pub fn post_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
 
-    pub fn blit(&self, gl:&mut WebGl2Renderer) -> Result<()> {
-        //From multisample FBO to regular FBO
-        gl.bind_framebuffer(self.composite.framebuffer_id, FrameBufferTarget::ReadFrameBuffer)?;
-        gl.bind_framebuffer(self.blit.framebuffer_id, FrameBufferTarget::DrawFrameBuffer)?;
-        gl.reset_depth_stencil_draw_buffer();
-        gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
+        gl.bind_framebuffer(self.fbo_primary.id, FrameBufferTarget::ReadFrameBuffer)?;
+        if let Some(fbo) = &self.fbo_secondary {
+            gl.bind_framebuffer(fbo.id, FrameBufferTarget::DrawFrameBuffer)?;
+            gl.blit_framebuffer(
+                0,0, self.width, self.height,
+                0,0, self.width, self.height,
+                BufferMask::ColorBufferBit, 
+                BlitFilter::Nearest
+            );
 
-        gl.blit_framebuffer(
-            0,0, self.width, self.height,
-            0,0, self.width, self.height,
-            BufferMask::ColorBufferBit, 
-            BlitFilter::Nearest
-        );
-
-        // and regular FBO to screen
+            gl.bind_framebuffer(fbo.id, FrameBufferTarget::ReadFrameBuffer)?;
+        }
         gl.release_framebuffer(FrameBufferTarget::DrawFrameBuffer);
-        gl.bind_framebuffer(self.blit.framebuffer_id, FrameBufferTarget::ReadFrameBuffer)?;
-        gl.reset_depth_stencil_draw_buffer();
-        gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
 
         gl.blit_framebuffer(
             0,0, self.width, self.height,
@@ -166,118 +137,184 @@ impl DrawBuffers {
             BufferMask::ColorBufferBit, 
             BlitFilter::Nearest
         );
-        gl.release_framebuffer(FrameBufferTarget::ReadFrameBuffer);
-        Ok(())
-    }
-    pub fn end(&self, gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.release_framebuffer(FrameBufferTarget::ReadFrameBuffer);
+
         Ok(())
     }
 }
 
-pub struct DrawBufferTextures {
-    // #0 - DIFFUSE 
-    pub diffuse_id: Id,
+pub struct FrameBuffer {
+    pub id: Id,
+    pub depth: Option<FrameBufferId>,
+    pub color: Option<FrameBufferId>,
 }
-impl DrawBufferTextures {
-    pub fn new(gl:&mut WebGl2Renderer, width: u32, height: u32) -> Result<Self> {
-        let diffuse_id = gl.create_texture()?;
-        gl.assign_simple_texture(
-            diffuse_id,
-            TextureTarget::Texture2d,
-            &SimpleTextureOptions {
-                flip_y: Some(false),
-                filter_min: Some(TextureMinFilter::Nearest),
-                filter_mag: Some(TextureMagFilter::Nearest),
-                pixel_format: PixelFormat::Rgba,
-                ..SimpleTextureOptions::default()
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FrameBufferId {
+    pub kind: FrameBufferIdKind,
+    pub multisample: bool,
+    pub id: Id
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FrameBufferIdKind {
+    Render,
+    Texture
+}
+
+impl FrameBuffer {
+    pub fn new(renderer: &mut AwsmRenderer) -> Result<Self> {
+        let gl = &mut renderer.gl;
+
+        let clear_color = renderer.config.clear_color;
+        let (_, _, width, height) = gl.get_viewport();
+        let id = gl.create_framebuffer()?;
+
+        Ok(Self{
+            id,
+            depth: None,
+            color: None,
+        })
+    }
+
+    pub fn build_depth(mut self, renderer: &mut AwsmRenderer, width: u32, height: u32, kind: FrameBufferIdKind, multisample: bool) -> Result<Self> {
+        let gl = &mut renderer.gl;
+
+        let depth_id = match kind {
+            FrameBufferIdKind::Render => {
+                let depth_id = gl.create_renderbuffer()?;
+
+                if multisample {
+                    gl.assign_renderbuffer_storage_multisample_max(depth_id, RenderBufferFormat::DepthComponent32f, width, height)?;
+                } else {
+                    gl.assign_renderbuffer_storage(depth_id, RenderBufferFormat::DepthComponent32f, width, height)?;
+                }
+                gl.assign_framebuffer_renderbuffer(self.id, depth_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Depth)?;
+                
+                depth_id
             },
-            &WebGlTextureSource::EmptyBufferView(width, height, 0),
-        )?;
+            // untested...
+            FrameBufferIdKind::Texture => {
+                if multisample {
+                    return Err(anyhow!("todo: multisample texture not support"));
+                }
+                let depth_id = gl.create_texture()?;
 
-        Ok(Self {
-            diffuse_id
-        })
-
-    }
-}
-
-
-impl DestroyWithGl for DrawBufferTextures {
-    fn destroy(&mut self, gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.delete_framebuffer(self.diffuse_id)?;
-        Ok(())
-    }
-}
-
-pub struct Composite {
-    pub framebuffer_id: Id,
-    pub renderbuffer_id: Id,
-}
-impl Composite {
-    pub fn new(gl:&mut WebGl2Renderer, textures:&DrawBufferTextures, width:u32, height: u32) -> Result<Self> {
-        let framebuffer_id = gl.create_framebuffer()?;
-        let renderbuffer_id = gl.create_renderbuffer()?;
+                gl.assign_simple_texture(
+                    depth_id,
+                    TextureTarget::Texture2d,
+                    &SimpleTextureOptions {
+                        flip_y: Some(false),
+                        filter_min: Some(TextureMinFilter::Nearest),
+                        filter_mag: Some(TextureMagFilter::Nearest),
+                        pixel_format: PixelFormat::Rgba,
+                        ..SimpleTextureOptions::default()
+                    },
+                    &WebGlTextureSource::EmptyBufferView(width, height, 0),
+                )?;
         
+                gl.assign_framebuffer_texture_2d(self.id, depth_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Depth, FrameBufferTextureTarget::Texture2d)?;
 
-        gl.assign_renderbuffer_storage_multisample_max(renderbuffer_id, RenderBufferFormat::Rgba8, width, height)?;
-        gl.assign_framebuffer_renderbuffer(framebuffer_id, renderbuffer_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0)?;
+                depth_id
+            }
+        };
 
-        //set the draw buffer targets
-        gl.draw_buffers(&vec![DrawBuffer::Color0])?;
+        self.depth = Some(FrameBufferId { kind, multisample, id: depth_id });
+
+        Ok(self)
+    }
+
+    pub fn build_color(mut self, renderer: &mut AwsmRenderer, width: u32, height: u32, kind: FrameBufferIdKind, multisample: bool) -> Result<Self> {
+        let gl = &mut renderer.gl;
+
+
+        let color_id = match kind {
+            FrameBufferIdKind::Render => {
+                let color_id = gl.create_renderbuffer()?;
+                if multisample {
+                    gl.assign_renderbuffer_storage_multisample_max(color_id, RenderBufferFormat::Rgba8, width, height)?;
+                } else {
+                    gl.assign_renderbuffer_storage(color_id, RenderBufferFormat::Rgba8, width, height)?;
+                }
+                gl.assign_framebuffer_renderbuffer(self.id, color_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0)?;
+
+                color_id
+            },
+            FrameBufferIdKind::Texture => {
+                if multisample {
+                    return Err(anyhow!("todo: multisample texture not support"));
+                }
+                let color_id = gl.create_texture()?;
+
+                gl.assign_simple_texture(
+                    color_id,
+                    TextureTarget::Texture2d,
+                    &SimpleTextureOptions {
+                        flip_y: Some(false),
+                        filter_min: Some(TextureMinFilter::Nearest),
+                        filter_mag: Some(TextureMagFilter::Nearest),
+                        pixel_format: PixelFormat::Rgba,
+                        ..SimpleTextureOptions::default()
+                    },
+                    &WebGlTextureSource::EmptyBufferView(width, height, 0),
+                )?;
+        
+                gl.assign_framebuffer_texture_2d(self.id, color_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0, FrameBufferTextureTarget::Texture2d)?;
+
+                color_id
+            }
+        };
+
+        self.color = Some(FrameBufferId { kind, multisample, id: color_id });
+
+        Ok(self)
+    }
+
+    pub fn release(&self, renderer: &mut AwsmRenderer) {
+        let gl = &mut renderer.gl;
+
+        gl.release_texture_target(TextureTarget::Texture2d);
+        gl.release_renderbuffer();
+        gl.release_framebuffer(FrameBufferTarget::ReadFrameBuffer);
+        gl.release_framebuffer(FrameBufferTarget::DrawFrameBuffer);
+    }
+
+
+    pub fn validate(mut self, renderer: &mut AwsmRenderer) -> Result<Self> {
+        let gl = &mut renderer.gl;
 
         //make sure we're all good
         gl.check_framebuffer_status(FrameBufferTarget::DrawFrameBuffer)?;
 
-
-        Ok(Self {
-            framebuffer_id,
-            renderbuffer_id,
-        })
+        Ok(self)
     }
+
 }
 
+impl DestroyWithGl for FrameBuffer {
+    fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
+        gl.delete_framebuffer(self.id)?;
 
-impl DestroyWithGl for Composite {
-    fn destroy(&mut self, gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.delete_framebuffer(self.framebuffer_id)?;
-        gl.delete_renderbuffer(self.renderbuffer_id)?;
+        if let Some(mut depth) = self.depth {
+            depth.destroy(gl)?;
+        }
+        if let Some(mut color) = self.color {
+            color.destroy(gl)?;
+        }
+
         Ok(())
     }
 }
 
-pub struct Blit {
-    pub framebuffer_id: Id,
-    pub renderbuffer_id: Id,
-}
-impl Blit {
-    pub fn new(gl:&mut WebGl2Renderer, width:u32, height: u32) -> Result<Self> {
-        let framebuffer_id = gl.create_framebuffer()?;
-        let renderbuffer_id = gl.create_renderbuffer()?;
-        gl.assign_renderbuffer_storage(renderbuffer_id, RenderBufferFormat::Rgba8, width, height)?;
-        gl.assign_framebuffer_renderbuffer(framebuffer_id, renderbuffer_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0)?;
-
-        //set the draw buffer targets
-        gl.draw_buffers(&vec![DrawBuffer::Color0])?;
-
-        //make sure we're all good
-        gl.check_framebuffer_status(FrameBufferTarget::DrawFrameBuffer)?;
-
-        Ok(Self {
-            framebuffer_id,
-            renderbuffer_id,
-        })
+impl DestroyWithGl for FrameBufferId {
+    fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
+        match self.kind {
+            FrameBufferIdKind::Render => gl.delete_renderbuffer(self.id).map_err(|err| err.into()),
+            FrameBufferIdKind::Texture => gl.delete_texture(self.id).map_err(|err| err.into()),
+        }
     }
 }
 
-
-impl DestroyWithGl for Blit {
-    fn destroy(&mut self, gl:&mut WebGl2Renderer) -> Result<()> {
-        gl.delete_renderbuffer(self.renderbuffer_id)?;
-        gl.delete_framebuffer(self.framebuffer_id)?;
-        Ok(())
-    }
-}
+// not used right now... but might be for post-effects like bloom...
 
 pub struct Quad {
     pub vao_id: Id,

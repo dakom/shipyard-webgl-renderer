@@ -16,7 +16,7 @@ use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use std::ops::{Deref, DerefMut};
 use anyhow::Result;
 use crate::{prelude::*, camera::Camera, animation::clock::AnimationClock};
-use self::{draw_buffers::DrawBuffers, shaders::ShaderCache};
+use self::{draw_buffers::{DrawBuffers, DrawBufferMode}, shaders::ShaderCache};
 use cleanup::DestroyWithGl;
 
 pub struct AwsmRenderer {
@@ -34,6 +34,7 @@ pub struct AwsmRenderer {
 
 pub struct Config {
     pub clear_color: [f32;4],
+    pub multisample: bool
 }
 
 
@@ -91,7 +92,16 @@ impl AwsmRenderer {
         if let Some(draw_buffers) = self.draw_buffers.as_mut() {
             draw_buffers.destroy(&mut self.gl);
         }
-        self.draw_buffers = Some(DrawBuffers::new(self)?);
+
+        self.draw_buffers = Some(
+            DrawBuffers::new(
+                self, 
+                match self.config.multisample {
+                    true => DrawBufferMode::Multisample,
+                    false => DrawBufferMode::Regular,
+                }
+            )?
+        );
 
         self.camera.resize(&mut self.gl, width, height);
 

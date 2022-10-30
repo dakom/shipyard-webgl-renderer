@@ -1,5 +1,5 @@
 use web_sys::{HtmlCanvasElement, window};
-use std::ops::{Deref, DerefMut};
+use std::{ops::{Deref, DerefMut}, sync::atomic::AtomicBool};
 use crate::prelude::*;
 use awsm_web::{webgl::{WebGlContextOptions, ResizeStrategy}, tick::{Raf, MainLoop, MainLoopOptions}, dom::resize::ResizeObserver};
 use shipyard_scenegraph::prelude::*;
@@ -38,7 +38,8 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
             })
         ),
         Config {
-            clear_color: [0.5, 0.5, 0.5, 1.0]
+            clear_color: [0.5, 0.5, 0.5, 1.0],
+            multisample: crate::config::DEFAULT_MULTISAMPLE_RENDERER
         }
     )?));
 
@@ -60,11 +61,14 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
     let main_loop_opts = MainLoopOptions::default();
     let timestep = main_loop_opts.simulation_timestep;
 
+    //let keep_looping = Rc::new(AtomicBool::new(true));
+
     let mut main_loop = MainLoop::new(
         main_loop_opts,
         {
             let world = Rc::clone(&world);
             move |time, delta| {
+
             }
         },
         {
@@ -82,7 +86,10 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
 
                 let world = &*world.borrow();
                 if let Ok(evt) = world.borrow::<UniqueView<ResizeEvent>>() {
-                    renderer.borrow_mut().resize(evt.0).unwrap_ext();
+                    if let Err(err) = renderer.borrow_mut().resize(evt.0) {
+                        let _ = world.remove_unique::<TickWrapper>();
+                        log::error!("{:#?}", err);
+                    }
                     drop(evt); // so we can remove within this borrow scope
                     world.remove_unique::<ResizeEvent>().unwrap_ext();
                 }
@@ -93,7 +100,8 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
                 world.run_workload(TRANSFORMS).unwrap_ext();
                 let transform_time = window().unwrap_ext().performance().unwrap_ext().now();
                 if let Err(err) = world.run_with_data(render_sys, &mut *renderer.borrow_mut()) {
-                    log::error!("{}", err);
+                    let _ = world.remove_unique::<TickWrapper>();
+                    log::error!("{:#?}", err);
                 }
                 let end_time = window().unwrap_ext().performance().unwrap_ext().now();
 

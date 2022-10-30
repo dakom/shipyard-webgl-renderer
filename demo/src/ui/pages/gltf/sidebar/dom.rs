@@ -1,7 +1,7 @@
 use super::state::*;
-use crate::{prelude::*, route::Route, ui::primitives::dropdown::{Dropdown, DropdownOption}};
+use crate::{prelude::*, route::Route, ui::primitives::{checkbox::Checkbox, dropdown::{Dropdown, DropdownOption}}};
 use crate::camera::CameraKind;
-use dominator::svg;
+use dominator::{svg, text};
 
 impl Sidebar {
     pub fn render(self: Rc<Self>) -> Dom {
@@ -33,6 +33,7 @@ impl Sidebar {
                                     .child_signal(sig.map(clone!(state => move |data| {
                                         data.map(clone!(state => move |(gltf_id, camera)| render_dropdown_group("camera", state.clone().render_camera_selector(gltf_id, camera))))
                                     })))
+                                    .child(state.clone().render_multisample_checkbox())
                                 })
                             }
                             None => {
@@ -90,6 +91,20 @@ impl Sidebar {
                 state.page.camera.set(Some(camera));
             }
         }))
+    }
+
+
+    fn render_multisample_checkbox(self: Rc<Self>) -> Dom {
+        let state = self;
+
+        Checkbox::new("Multisample Renderer".to_string(), crate::config::DEFAULT_MULTISAMPLE_RENDERER, clone!(state => move |value| {
+            let renderer = state.page.renderer_cell();
+            let mut renderer = renderer.borrow_mut();
+            renderer.config.multisample = value;
+
+            let (_, _, width, height) = renderer.gl.get_viewport();
+            renderer.resize(awsm_web::webgl::ResizeStrategy::All(width, height)).unwrap_ext();
+        })).render()
     }
 }
 

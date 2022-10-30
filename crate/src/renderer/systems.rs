@@ -38,7 +38,7 @@ pub fn render_sys(
             // forward vs. deferred is not totally right yet
             // but the buffers are sorta kinda setup ish
             // (probably just get rid of deferred and rely on culling)
-            draw_buffers.init(gl)?;
+            draw_buffers.pre_draw(gl)?;
 
             gl.set_depth_mask(true);
             gl.toggle(GlToggle::DepthTest, true);
@@ -76,7 +76,7 @@ pub fn render_sys(
                     match material {
                         Material::Pbr(pbr) => {
                             gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.metallic_roughness.base_color_factor.as_slice());
-                            let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, 0.0];
+                            let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, pbr.metallic_roughness.roughness_factor];
 
                             gl.upload_uniform_fvec_name("u_metallic_roughness", UniformType::Vector2, &metallic_roughness);
                         }
@@ -95,9 +95,7 @@ pub fn render_sys(
                     //forward::render(&mut gl, mesh, material, &world_transform_buf).unwrap_throw();
                 }
 
-            draw_buffers.composite(gl)?;
-            draw_buffers.blit(gl)?;
-            draw_buffers.end(gl)?;
+            draw_buffers.post_draw(gl)?;
         },
 
         _ => {}

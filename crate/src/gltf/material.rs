@@ -10,7 +10,8 @@ pub fn make_gltf_material(world: &World, res: &GltfResource, gltf_material: gltf
 
     let metallic_roughness = PbrMetallicRoughness {
         base_color_factor: gltf_metallic_roughness.base_color_factor().into(),
-        metallic_factor: gltf_metallic_roughness.metallic_factor()
+        metallic_factor: gltf_metallic_roughness.metallic_factor(),
+        roughness_factor: gltf_metallic_roughness.roughness_factor(),
     };
 
     let material = PbrMaterial {  

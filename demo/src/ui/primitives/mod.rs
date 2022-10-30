@@ -6,3 +6,4 @@ pub mod dropdown;
 pub mod tabs;
 pub mod range;
 pub mod table;
+pub mod checkbox;
