@@ -4,7 +4,7 @@ use crate::{
     animation::clip::AnimationClip,
 };
 use anyhow::bail;
-use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}};
+use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}, Node};
 use rustc_hash::FxHashMap;
 use shipyard::*;
 use super::{
@@ -35,9 +35,30 @@ use awsm_web::webgl::{
 use nalgebra_glm::{Vec3, Quat};
 use shipyard_scenegraph::prelude::*;
 
+pub(super) struct GltfPopulateContext {
+    pub skin_infos:FxHashMap<usize, GltfSkinInfo>,
+    pub texture_ids:FxHashMap<usize, Id>,
+}
+
+impl GltfPopulateContext {
+    pub fn new() -> Self {
+        Self {
+            skin_infos: FxHashMap::default(),
+            texture_ids: FxHashMap::default(),
+        }
+    }
+
+    pub fn get_skin_info(&self, mesh_node: &Node) -> Result<Option<&GltfSkinInfo>> {
+        match mesh_node.skin() {
+            None => Ok(None),
+            Some(skin) => Ok(Some(self.skin_infos.get(&skin.index()).ok_or_else(|| anyhow::anyhow!("missing skin!"))?))
+        }
+    }
+}
 impl AwsmRenderer {
     pub fn populate_gltf(&mut self, world: &World, res: &GltfResource, scene: Option<usize>) -> Result<()> {
         let doc = &res.gltf;
+        let mut ctx = GltfPopulateContext::new();
 
         let scene = match scene {
             Some(index) => doc.scenes().nth(index).ok_or(anyhow::format_err!("scene doesn't exist"))?, 
@@ -55,12 +76,11 @@ impl AwsmRenderer {
         //TODO - if any referenced skins are not in scene, add them as new root nodes?
 
         // add skin joints, this happens before meshes so that each primitive can reference them
-        let mut skin_infos:FxHashMap<usize, GltfSkinInfo> = FxHashMap::default();
         for (node_index, entity) in gltf_entities.iter() {
             if let Some(gltf_node) = doc.nodes().nth(*node_index) {
                 if let Some(skin) = gltf_node.skin() {
                     let skin_info = self.add_gltf_skin(world, res, &gltf_entities, &skin)?;
-                    skin_infos.insert(skin.index(), skin_info);
+                    ctx.skin_infos.insert(skin.index(), skin_info);
                     log::info!("has skin in tree!");
                 }
             }
@@ -70,12 +90,8 @@ impl AwsmRenderer {
         for (node_index, entity) in gltf_entities.iter() {
             if let Some(gltf_node) = doc.nodes().nth(*node_index) {
                 if let Some(mesh) = gltf_node.mesh() {
-                    let mut skin_info:Option<&GltfSkinInfo> = match gltf_node.skin() {
-                        None => None,
-                        Some(skin) => Some(skin_infos.get(&skin.index()).ok_or_else(|| anyhow::anyhow!("missing skin!"))?)
-                    };
                     for primitive in mesh.primitives() {
-                        self.add_gltf_primitive(world, res, &gltf_node, *entity, &mesh, &primitive, skin_info)?;
+                        self.add_gltf_primitive(world, res, &mut ctx, &gltf_node, *entity, &mesh, &primitive)?;
                     }
                 }
             }

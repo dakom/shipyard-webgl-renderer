@@ -1,6 +1,6 @@
 use crate::{
     prelude::*, 
-    gltf::{component::GltfPrimitive, material::make_gltf_material}, 
+    gltf::component::GltfPrimitive, 
     animation::clip::AnimationClip,
     renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget},
 };
@@ -20,6 +20,7 @@ use super::{
     },
     animation::add_gltf_animations,
     skin::GltfSkinInfo,
+    populate::GltfPopulateContext,
 };
 use awsm_web::webgl::{
     Id, 
@@ -37,15 +38,15 @@ use nalgebra_glm::{Vec3, Quat};
 use shipyard_scenegraph::prelude::*;
 
 impl AwsmRenderer {
-    pub fn add_gltf_primitive(
+    pub(super) fn add_gltf_primitive(
         &mut self, 
         world: &World, 
         res: &GltfResource, 
+        ctx: &mut GltfPopulateContext,
         mesh_node: &gltf::Node,
         mesh_entity: EntityId,
         mesh: &gltf::mesh::Mesh,
         primitive: &gltf::mesh::Primitive,
-        skin_info: Option<&GltfSkinInfo>
     ) -> Result<()> {
         let gltf_mesh_index = mesh.index();
         let gltf_prim_index = primitive.index();
@@ -94,7 +95,8 @@ impl AwsmRenderer {
 
             let mut skin_joint_map:FxHashMap<u32, u32> = FxHashMap::default();
             let mut skin_weight_map:FxHashMap<u32, u32> = FxHashMap::default();
-            if let Some(skin_info) = skin_info {
+
+            if let Some(skin_info) = ctx.get_skin_info(mesh_node)? {
                 vertex_shader.n_skin_joints = skin_info.joint_entities.len() as u8
             }
 
@@ -130,7 +132,7 @@ impl AwsmRenderer {
                         log::warn!("todo, color!");
                     },
                     Semantic::TexCoords(uvs) => {
-                        log::warn!("todo, tex!");
+                        log::warn!("todo, tex (anything to upload... or just setup sampler??) ({:?})!", uvs);
                     },
                     Semantic::Joints(joint_index) => {
                         let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
@@ -225,7 +227,7 @@ impl AwsmRenderer {
                 None 
             };
 
-            let material = make_gltf_material(world, res, primitive.material())?;
+            let material = self.gltf_make_material(world, res, ctx, primitive.material())?;
             match &material {
                 Material::Pbr(pbr) => {
                     fragment_shader.material = Some(pbr.into());
@@ -238,7 +240,7 @@ impl AwsmRenderer {
                 vao_id,
                 buffer_ids,
                 program_id,
-                skin_joints: match skin_info {
+                skin_joints: match ctx.get_skin_info(mesh_node)? {
                     None => Vec::new(),
                     Some(skin_info) => {
                         skin_info.joint_entities.clone()

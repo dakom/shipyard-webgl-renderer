@@ -4,6 +4,8 @@ use super::cleanup::DestroyWithGl;
 
 mod pbr;
 pub use pbr::*;
+mod texture;
+pub use texture::*;
 
 #[derive(Component, Clone, Debug)]
 pub enum Material {

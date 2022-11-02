@@ -38,8 +38,7 @@ pub struct DrawBuffers {
     pub width: u32,
     pub height: u32,
     pub clear_color: [f32;4],
-    pub fbo_primary: FrameBuffer,
-    pub fbo_secondary: Option<FrameBuffer>,
+    pub fbos: Vec<FrameBuffer>,
     pub mode: DrawBufferMode
 }
 
@@ -51,8 +50,7 @@ pub enum DrawBufferMode {
 
 impl DestroyWithGl for DrawBuffers {
     fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
-        self.fbo_primary.destroy(&mut gl)?;
-        if let Some(fbo) = self.fbo_secondary.as_mut() {
+        for mut fbo in self.fbos.drain(..) {
             fbo.destroy(&mut gl)?;
         }
         Ok(())
@@ -74,25 +72,27 @@ impl DrawBuffers {
 
         let multisample = mode == DrawBufferMode::Multisample;
 
-        let fbo_primary = FrameBuffer::new(renderer)?
-                    .build_depth(renderer, width, height, FrameBufferIdKind::Render, multisample)?
-                    .build_color(renderer, width, height, FrameBufferIdKind::Render, multisample)?
-                    .validate(renderer)?;
+        let mut fbos = Vec::new();
+
+        let fbo = FrameBuffer::new(renderer)?
+            .build_depth(renderer, width, height, FrameBufferIdKind::Render, multisample)?
+            .build_color(renderer, width, height, FrameBufferIdKind::Render, multisample)?
+            .validate(renderer)?;
 
         renderer.gl.draw_buffers(&vec![DrawBuffer::Color0])?;
+        fbo.release(renderer);
+        fbos.push(fbo);
 
-        fbo_primary.release(renderer);
-
-        let fbo_secondary = match mode {
-            DrawBufferMode::Regular => None,
+        match mode {
+            DrawBufferMode::Regular => {},
             DrawBufferMode::Multisample => {
+                // multisample blit target is just color for downsampling, no need for depth
                 let fbo = FrameBuffer::new(renderer)?
-                    .build_depth(renderer, width, height, FrameBufferIdKind::Render, false)?
                     .build_color(renderer, width, height, FrameBufferIdKind::Render, false)?
                     .validate(renderer)?;
 
                 fbo.release(renderer);
-                Some(fbo)
+                fbos.push(fbo);
             }
         };
 
@@ -100,15 +100,14 @@ impl DrawBuffers {
             width,
             height,
             clear_color,
-            fbo_primary,
-            fbo_secondary,
+            fbos,
             mode
         })
     }
 
     pub fn pre_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
 
-        gl.bind_framebuffer(self.fbo_primary.id, FrameBufferTarget::DrawFrameBuffer)?;
+        gl.bind_framebuffer(self.fbos[0].id, FrameBufferTarget::DrawFrameBuffer)?;
         gl.reset_depth_stencil_draw_buffer();
         gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
 
@@ -117,8 +116,12 @@ impl DrawBuffers {
 
     pub fn post_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
 
-        gl.bind_framebuffer(self.fbo_primary.id, FrameBufferTarget::ReadFrameBuffer)?;
-        if let Some(fbo) = &self.fbo_secondary {
+        gl.bind_framebuffer(self.fbos[0].id, FrameBufferTarget::ReadFrameBuffer)?;
+
+        // this is typically going to be due to multisampling
+        // i.e. to downsample from the msaa into single-sample fbo
+        // and that can't be done directly into the front buffer
+        if let Some(fbo) = &self.fbos.get(1) {
             gl.bind_framebuffer(fbo.id, FrameBufferTarget::DrawFrameBuffer)?;
             gl.blit_framebuffer(
                 0,0, self.width, self.height,
@@ -130,6 +133,8 @@ impl DrawBuffers {
             gl.bind_framebuffer(fbo.id, FrameBufferTarget::ReadFrameBuffer)?;
         }
         gl.release_framebuffer(FrameBufferTarget::DrawFrameBuffer);
+        //gl.set_clear_color(self.clear_color[0], self.clear_color[1],self.clear_color[2],self.clear_color[3]);
+        //gl.clear(&[BufferMask::ColorBufferBit, BufferMask::DepthBufferBit, BufferMask::StencilBufferBit]);
 
         gl.blit_framebuffer(
             0,0, self.width, self.height,
@@ -197,21 +202,8 @@ impl FrameBuffer {
                 if multisample {
                     return Err(anyhow!("todo: multisample texture not support"));
                 }
-                let depth_id = gl.create_texture()?;
 
-                gl.assign_simple_texture(
-                    depth_id,
-                    TextureTarget::Texture2d,
-                    &SimpleTextureOptions {
-                        flip_y: Some(false),
-                        filter_min: Some(TextureMinFilter::Nearest),
-                        filter_mag: Some(TextureMagFilter::Nearest),
-                        pixel_format: PixelFormat::Rgba,
-                        ..SimpleTextureOptions::default()
-                    },
-                    &WebGlTextureSource::EmptyBufferView(width, height, 0),
-                )?;
-        
+                let depth_id = make_texture(gl, width, height)?;
                 gl.assign_framebuffer_texture_2d(self.id, depth_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Depth, FrameBufferTextureTarget::Texture2d)?;
 
                 depth_id
@@ -243,21 +235,7 @@ impl FrameBuffer {
                 if multisample {
                     return Err(anyhow!("todo: multisample texture not support"));
                 }
-                let color_id = gl.create_texture()?;
-
-                gl.assign_simple_texture(
-                    color_id,
-                    TextureTarget::Texture2d,
-                    &SimpleTextureOptions {
-                        flip_y: Some(false),
-                        filter_min: Some(TextureMinFilter::Nearest),
-                        filter_mag: Some(TextureMagFilter::Nearest),
-                        pixel_format: PixelFormat::Rgba,
-                        ..SimpleTextureOptions::default()
-                    },
-                    &WebGlTextureSource::EmptyBufferView(width, height, 0),
-                )?;
-        
+                let color_id = make_texture(gl, width, height)?; 
                 gl.assign_framebuffer_texture_2d(self.id, color_id, FrameBufferTarget::DrawFrameBuffer, FrameBufferAttachment::Color0, FrameBufferTextureTarget::Texture2d)?;
 
                 color_id
@@ -314,6 +292,25 @@ impl DestroyWithGl for FrameBufferId {
     }
 }
 
+fn make_texture(gl:&mut WebGl2Renderer, width: u32, height: u32) -> Result<Id> {
+    let id = gl.create_texture()?;
+
+    gl.assign_simple_texture(
+        id,
+        TextureTarget::Texture2d,
+        &SimpleTextureOptions {
+            flip_y: Some(false),
+            filter_min: Some(TextureMinFilter::Nearest),
+            filter_mag: Some(TextureMagFilter::Nearest),
+            pixel_format: PixelFormat::Rgba,
+            ..SimpleTextureOptions::default()
+        },
+        &WebGlTextureSource::EmptyBufferView(width, height, 0),
+    )?;
+
+    Ok(id)
+}
+
 // not used right now... but might be for post-effects like bloom...
 
 pub struct Quad {
@@ -368,3 +365,4 @@ impl DestroyWithGl for Quad {
         Ok(())
     }
 }
+

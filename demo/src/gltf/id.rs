@@ -28,7 +28,8 @@ pub enum GltfId {
     // STANDARD 
     // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#standard 
     Box,
-    BoxInterleaved
+    BoxInterleaved,
+    BoxTextured
 }
 
 impl From<&str> for GltfId {
@@ -63,6 +64,7 @@ impl GltfId {
             // Standard
             Self::Box,
             Self::BoxInterleaved,
+            Self::BoxTextured
         ];
 
         v.sort_by(|a, b| a.label().cmp(b.label()));
@@ -87,6 +89,7 @@ impl GltfId {
             // Standard
             Self::Box => "Box/glTF/Box.gltf",
             Self::BoxInterleaved => "BoxInterleaved/glTF/BoxInterleaved.gltf",
+            Self::BoxTextured => "BoxTextured/glTF/BoxTextured.gltf",
         }
     }
 
@@ -107,6 +110,7 @@ impl GltfId {
             // Standard
             Self::Box => "Standard/Box",
             Self::BoxInterleaved => "Standard/BoxInterleaved",
+            Self::BoxTextured => "Standard/BoxTextured",
         }
     }
 
@@ -133,7 +137,9 @@ impl GltfId {
             Self::InterpolationTest => {
                 Point3::new(0.0, 0.0, 30.0)
             },
-            Self::Box | Self::BoxInterleaved => {
+            Self::Box 
+            | Self::BoxInterleaved
+            | Self::BoxTextured => {
                 Point3::new(2.0, 2.0, 2.0)
             },
 
