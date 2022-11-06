@@ -128,6 +128,29 @@ pub fn gltf_accessor_to_vec3s(res: &GltfResource, accessor: &accessor::Accessor)
     Ok(out)
 }
 
+pub fn gltf_accessor_to_vec2s(res: &GltfResource, accessor: &accessor::Accessor) -> Result<Vec<Vec2>> {
+    if accessor.dimensions() != accessor::Dimensions::Vec2 {
+        bail!("wrong accessor type for strongly-typed vec2");
+    }
+    let buffer = gltf_accessor_data(res, accessor)?;
+    let mut out = Vec::with_capacity(buffer.len() / (accessor.data_type().size() * accessor.dimensions().multiplicity()));
+
+    let mut stack = Vec2::identity();
+    let mut idx:usize = 0;
+
+    gltf_accessor_buffer_with_f32(accessor, &buffer, |value| {
+        stack.as_mut_slice()[idx] = value;
+        if idx == 1 {
+            idx = 0;
+            out.push(stack.clone())
+        } else {
+            idx += 1;
+        }
+    })?;
+
+    Ok(out)
+}
+
 pub fn gltf_accessor_to_scalars(res: &GltfResource, accessor: &accessor::Accessor) -> Result<Vec<f32>> {
     if accessor.dimensions() != accessor::Dimensions::Scalar {
         bail!("wrong accessor type for strongly-typed scalar");

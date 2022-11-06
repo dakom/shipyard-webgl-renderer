@@ -8,6 +8,7 @@ use super::{COMMON_CAMERA, COMMON_HELPERS};
 
 const MESH_FRAGMENT_BASE:&'static str = include_str!("./glsl/fragment/mesh.frag");
 const FRAGMENT_VECTORS:&'static str = include_str!("./glsl/fragment/vectors.glsl");
+const FRAGMENT_COLORSPACE:&'static str = include_str!("./glsl/fragment/material/colorspace.glsl");
 const FRAGMENT_LIGHTING_LIGHT:&'static str = include_str!("./glsl/fragment/lighting/light.glsl");
 const FRAGMENT_MATERIAL_PBR:&'static str = include_str!("./glsl/fragment/material/pbr.frag");
 const FRAGMENT_MATERIAL_PBR_LIGHT:&'static str = include_str!("./glsl/fragment/material/pbr-light.frag");
@@ -47,26 +48,72 @@ impl FragmentCache {
 // is controlled via various components as-needed
 #[derive(Hash, Debug, Clone, PartialEq, Eq, Default)]
 pub struct MeshFragmentShaderKey {
-    pub varying_normals: bool,
+    pub normal: Option<MeshFragmentNormal>,
     pub material: Option<MeshFragmentShaderMaterialKey>,
+}
+
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+pub enum MeshFragmentNormal {
+    Loc(u32),
+    UvLoc(u32)
 }
 
 impl MeshFragmentShaderKey {
     fn into_code(&self) -> Result<String> {
         let mut res = MESH_FRAGMENT_BASE
-            .replace("% INCLUDES_HELPERS %", COMMON_HELPERS)
+            .replace("% INCLUDES_HELPERS %", &format!("{}\n{}\n", COMMON_HELPERS, FRAGMENT_COLORSPACE))
             .replace("% INCLUDES_CAMERA %", COMMON_CAMERA)
             .replace("% INCLUDES_VECTORS %", FRAGMENT_VECTORS)
             .replace("% INCLUDES_LIGHT %", FRAGMENT_LIGHTING_LIGHT);
 
-        res = res.replace("% INCLUDES_NORMALS %", {
-            if self.varying_normals {
-                "#define HAS_NORMALS\n"
-            } else {
-                ""
-            }
-        });
 
+
+
+        match &self.normal {
+            Some(normal) => {
+                match normal {
+                    MeshFragmentNormal::Loc(loc) => {
+                        res = res
+                            .replace(
+                                "% INCLUDES_FVECTORS %", 
+                                "FragmentVectors fvectors = getFragmentVectors(vec2(1.0));\n"
+                            )
+                            .replace(
+                                "% INCLUDES_VECTORS_NORMAL %", 
+                                r#"
+                                    #define HAS_NORMALS
+                                    in vec3 v_normal;
+                                "#
+                            );
+
+                    }
+                    MeshFragmentNormal::UvLoc(loc) => {
+                        log::warn!("todo - fixme!");
+                        res = res
+                            .replace(
+                                "% INCLUDES_FVECTORS %", 
+                                "FragmentVectors fvectors = getFragmentVectors(vec2(1.0));\n"
+                            )
+                            .replace(
+                                "% INCLUDES_VECTORS_NORMAL %", 
+                                ""
+                            );
+                    }
+                }
+
+            },
+            None => {
+                res = res
+                    .replace(
+                        "% INCLUDES_FVECTORS %", 
+                        "FragmentVectors fvectors = getFragmentVectors(vec2(1.0));\n"
+                    )
+                    .replace(
+                        "% INCLUDES_VECTORS_NORMAL %", 
+                        ""
+                    );
+            }
+        }
         match &self.material {
             Some(material) => {
                 res = res.replace("% INCLUDES_MATERIAL %", &material.into_code()?);
@@ -102,18 +149,46 @@ impl From<&PbrMaterial> for MeshFragmentShaderMaterialKey {
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
 pub struct MeshFragmentShaderMaterialPbrKey {
+    pub metallic_roughness_texture_uv_index: Option<u32>,
+    pub base_color_texture_uv_index: Option<u32> 
 }
 
 impl MeshFragmentShaderMaterialPbrKey {
     fn into_code(&self) -> Result<String> {
 
-        Ok(format!("{}\n{}", FRAGMENT_MATERIAL_PBR, FRAGMENT_MATERIAL_PBR_LIGHT))
+        let mut res = format!("{}\n{}", FRAGMENT_MATERIAL_PBR, FRAGMENT_MATERIAL_PBR_LIGHT);
+
+        res = res.replace("% INCLUDES_PBR_VARS %", &{
+            let mut s = "".to_string();
+
+            if self.metallic_roughness_texture_uv_index.is_some() {
+                s.push_str("#define HAS_METALROUGHNESSMAP\n");
+            }
+            if self.base_color_texture_uv_index.is_some() {
+                s.push_str("#define HAS_BASECOLORMAP\n");
+            }
+            s
+        });
+
+        Ok(res)
     }
 }
 
 impl From<&PbrMaterial> for MeshFragmentShaderMaterialPbrKey {
     fn from(src: &PbrMaterial) -> Self {
+        
         Self {
+            metallic_roughness_texture_uv_index: src
+                .metallic_roughness
+                .metallic_roughness_texture
+                .as_ref()
+                .map(|tex| tex.uv_index),
+
+            base_color_texture_uv_index: src
+                .metallic_roughness
+                .base_color_texture
+                .as_ref()
+                .map(|tex| tex.uv_index)
         }
     }
 }

@@ -6,7 +6,7 @@ use std::collections::hash_map::Entry;
 
 const MESH_VERTEX_BASE:&'static str = include_str!("./glsl/vertex/mesh.vert");
 
-use super::{COMMON_CAMERA, COMMON_HELPERS};
+use super::{COMMON_CAMERA, COMMON_HELPERS, MeshFragmentShaderKey, MeshFragmentShaderMaterialPbrKey, MeshFragmentShaderMaterialKey};
 
 pub(crate) struct VertexCache {
     pub quad_unit: Id,
@@ -45,6 +45,8 @@ pub struct MeshVertexShaderKey {
     pub skin_targets: Vec<SkinTarget>,
     pub n_morph_target_weights: u8,
     pub n_skin_joints: u8,
+    pub tex_coords: Option<Vec<u32>>,
+    pub fragment_key: MeshFragmentShaderKey,
     pub attribute_normals: bool,
     pub attribute_tangents: bool,
 }
@@ -174,6 +176,55 @@ impl MeshVertexShaderKey {
             s
         });
 
+        res = res.replace("% INCLUDES_TEXTURE_VARS %", &{
+            let mut s = "".to_string();
+
+            if let Some(tex_coords) = &self.tex_coords {
+                for (index, loc) in tex_coords.iter().enumerate() {
+                    s.push_str(&format!("layout(location={loc}) in vec2 a_tex_coord_{index};\n"));
+                }
+            }
+            
+            s
+        });
+
+
+        res = res.replace("% INCLUDES_MATERIAL_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(material) = &self.fragment_key.material {
+                match material {
+                    MeshFragmentShaderMaterialKey::Pbr(pbr) => {
+                        if pbr.metallic_roughness_texture_uv_index.is_some() {
+                            s.push_str(r#"
+                                out vec2 v_metallic_roughness_uv;
+                            "#);
+                        }
+                        if pbr.base_color_texture_uv_index.is_some() {
+                            s.push_str(r#"
+                                out vec2 v_base_color_uv;
+                            "#);
+                        }
+                    }
+                }
+            }
+            s
+        });
+        res = res.replace("% INCLUDES_ASSIGN_MATERIAL_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(material) = &self.fragment_key.material {
+                match material {
+                    MeshFragmentShaderMaterialKey::Pbr(pbr) => {
+                        if let Some(index) = pbr.metallic_roughness_texture_uv_index {
+                            s.push_str(&format!("v_metallic_roughness_uv = a_tex_coord_{index};\n"));
+                        }
+                        if let Some(index) = pbr.base_color_texture_uv_index {
+                            s.push_str(&format!("v_base_color_uv = a_tex_coord_{index};\n"));
+                        }
+                    }
+                }
+            }
+            s
+        });
         //log::info!("{}", res);
         Ok(res)
     }

@@ -2,7 +2,7 @@ use crate::{
     prelude::*, 
     gltf::component::GltfPrimitive, 
     animation::clip::AnimationClip,
-    renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget},
+    renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget, MeshFragmentNormal},
 };
 use anyhow::bail;
 use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}};
@@ -13,6 +13,7 @@ use super::{
     accessor::{
         gltf_accessor_to_scalars,
         gltf_accessor_to_vec3s,
+        gltf_accessor_to_vec2s,
         gltf_accessor_to_quats, 
         gltf_accessor_data,
         gltf_accessor_buffer_with_f32,
@@ -95,6 +96,7 @@ impl AwsmRenderer {
 
             let mut skin_joint_map:FxHashMap<u32, u32> = FxHashMap::default();
             let mut skin_weight_map:FxHashMap<u32, u32> = FxHashMap::default();
+            let mut texture_coords_map:FxHashMap<u32, u32> = FxHashMap::default();
 
             if let Some(skin_info) = ctx.get_skin_info(mesh_node)? {
                 vertex_shader.n_skin_joints = skin_info.joint_entities.len() as u8
@@ -114,7 +116,8 @@ impl AwsmRenderer {
                         //log::info!("NORMALS");
                         //log::info!("{:#?}", gltf_accessor_to_vec3s(res, &accessor)?);
                         vertex_shader.attribute_normals = true;
-                        fragment_shader.varying_normals = true;
+                        fragment_shader.normal = Some(MeshFragmentNormal::Loc(ATTRIBUTE_NORMAL));
+                        //fragment_shader.varying_normals = true;
 
                         let loc = NameOrLoc::Loc(ATTRIBUTE_NORMAL);
                         let data = self.upload_accessor_to_vao_data(res, &accessor, loc, Some(BufferTarget::ArrayBuffer))?;
@@ -132,7 +135,11 @@ impl AwsmRenderer {
                         log::warn!("todo, color!");
                     },
                     Semantic::TexCoords(uvs) => {
-                        log::warn!("todo, tex (anything to upload... or just setup sampler??) ({:?})!", uvs);
+                        let mut data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
+                        buffer_ids.push(data.buffer_id);
+                        vao_data.push(data);
+                        texture_coords_map.insert(uvs, dynamic_loc);
+                        dynamic_loc += 1;
                     },
                     Semantic::Joints(joint_index) => {
                         let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
@@ -208,7 +215,13 @@ impl AwsmRenderer {
                 &vao_data
             )?;
 
-            
+          
+            if !texture_coords_map.is_empty() {
+                let mut texture_coords:Vec<(u32, u32)> = texture_coords_map.into_iter().collect();
+                texture_coords.sort_by(|a, b| a.0.cmp(&b.0));
+                vertex_shader.tex_coords = Some(texture_coords.into_iter().map(|(_, loc)| loc).collect());
+            }
+
             let mesh_morph_weights = if !vertex_shader.morph_targets.is_empty() {
                 let values = match mesh_node.weights() {
                     Some(weights) => weights.to_vec(),
@@ -233,6 +246,8 @@ impl AwsmRenderer {
                     fragment_shader.material = Some(pbr.into());
                 }
             }
+
+            vertex_shader.fragment_key = fragment_shader.clone();
 
             let program_id = self.shaders.mesh_program(&mut self.gl, vertex_shader, fragment_shader)?;
 

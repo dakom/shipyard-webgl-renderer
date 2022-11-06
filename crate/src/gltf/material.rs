@@ -11,17 +11,26 @@ impl AwsmRenderer {
 
         let metallic_roughness = PbrMetallicRoughness {
             base_color_factor: gltf_metallic_roughness.base_color_factor().into(),
+            metallic_factor: gltf_metallic_roughness.metallic_factor(),
+            roughness_factor: gltf_metallic_roughness.roughness_factor(),
             base_color_texture: match gltf_metallic_roughness.base_color_texture() {
                 None => None,
                 Some(info) => {
                     Some(TextureInfo {
                         id: self.gltf_get_texture(res, ctx, &info.texture())?,
-                        loc: info.tex_coord() // TODO - confirm... bump... ?
+                        uv_index: info.tex_coord()
                     })
                 }
             },
-            metallic_factor: gltf_metallic_roughness.metallic_factor(),
-            roughness_factor: gltf_metallic_roughness.roughness_factor(),
+            metallic_roughness_texture: match gltf_metallic_roughness.metallic_roughness_texture() {
+                None => None,
+                Some(info) => {
+                    Some(TextureInfo {
+                        id: self.gltf_get_texture(res, ctx, &info.texture())?,
+                        uv_index: info.tex_coord()
+                    })
+                }
+            },
         };
 
 

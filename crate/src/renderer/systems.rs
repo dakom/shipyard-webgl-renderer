@@ -79,6 +79,17 @@ pub fn render_sys(
                             let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, pbr.metallic_roughness.roughness_factor];
 
                             gl.upload_uniform_fvec_name("u_metallic_roughness", UniformType::Vector2, &metallic_roughness);
+
+                            if let Some(tex) = &pbr.metallic_roughness.metallic_roughness_texture {
+
+                                gl.activate_texture_for_sampler_name(tex.id, "u_metallic_roughness_sampler");
+                            }
+                            if let Some(tex) = &pbr.metallic_roughness.base_color_texture {
+
+                                //gl.assign_texture_slot_to_uniform_name(mesh.program_id, "u_base_color_sampler", 0)?;
+                                //gl.activate_texture_sampler_index(tex.id, 0)?;
+                                gl.activate_texture_for_sampler_name(tex.id, "u_base_color_sampler");
+                            }
                         }
                     }
 

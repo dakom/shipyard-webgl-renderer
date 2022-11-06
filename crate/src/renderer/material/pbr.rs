@@ -12,6 +12,7 @@ pub struct PbrMaterial {
 pub struct PbrMetallicRoughness {
     pub base_color_factor: Vector4<f32>,
     pub base_color_texture: Option<TextureInfo>, 
+    pub metallic_roughness_texture: Option<TextureInfo>, 
     pub metallic_factor: f32,
     pub roughness_factor: f32,
 }

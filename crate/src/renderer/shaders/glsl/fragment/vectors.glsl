@@ -1,11 +1,11 @@
 in vec3 v_pos;
-in vec2 v_uv;
+
+% INCLUDES_VECTORS_NORMAL %
+
 
 #ifdef HAS_NORMALS
     #ifdef HAS_TANGENTS
         in mat3 v_tbn;
-    #else
-        in vec3 v_normal;
     #endif
 #endif
 
@@ -22,14 +22,14 @@ struct FragmentVectors
     float NdotV; // cos angle between normal and view direction
 };
 
-vec3 getNormal()
+vec3 getNormal(vec2 uv)
 {
     // Retrieve the tangent space matrix
     #ifndef HAS_TANGENTS
         vec3 pos_dx = dFdx(v_pos);
         vec3 pos_dy = dFdy(v_pos);
-        vec3 tex_dx = dFdx(vec3(v_uv, 0.0));
-        vec3 tex_dy = dFdy(vec3(v_uv, 0.0));
+        vec3 tex_dx = dFdx(vec3(uv, 0.0));
+        vec3 tex_dy = dFdy(vec3(uv, 0.0));
         vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
 
         #ifdef HAS_NORMALS
@@ -46,7 +46,7 @@ vec3 getNormal()
     #endif
 
     #ifdef HAS_NORMALMAP
-        vec3 n = texture2D(u_normal_sampler, v_uv).rgb;
+        vec3 n = texture2D(u_normal_sampler, uv).rgb;
         n = normalize(tbn * ((2.0 * n - 1.0) * vec3(u_normal_scale, u_normal_scale, 1.0)));
     #else
         // The tbn matrix is linearly interpolated, so we need to re-normalize
@@ -56,10 +56,10 @@ vec3 getNormal()
     return n;
 }
 
-FragmentVectors getFragmentVectors() {
+FragmentVectors getFragmentVectors(vec2 normal_uv) {
     Camera camera = getCamera();
 
-    vec3 normal = getNormal();
+    vec3 normal = getNormal(normal_uv);
     vec3 surfaceToCamera = normalize(camera.position - v_pos); 
     vec3 reflection = -normalize(reflect(surfaceToCamera, normal));
     float NdotV = abs(dot(normal, surfaceToCamera)) + 0.001;

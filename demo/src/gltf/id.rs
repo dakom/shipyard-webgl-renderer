@@ -29,7 +29,11 @@ pub enum GltfId {
     // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#standard 
     Box,
     BoxInterleaved,
-    BoxTextured
+    BoxTextured,
+    BoxTexturedNpoT,
+    BoxWithSpaces,
+    BoxVertexColors,
+    Cube
 }
 
 impl From<&str> for GltfId {
@@ -64,7 +68,11 @@ impl GltfId {
             // Standard
             Self::Box,
             Self::BoxInterleaved,
-            Self::BoxTextured
+            Self::BoxTextured,
+            Self::BoxTexturedNpoT,
+            Self::BoxWithSpaces,
+            Self::BoxVertexColors,
+            Self::Cube,
         ];
 
         v.sort_by(|a, b| a.label().cmp(b.label()));
@@ -90,6 +98,10 @@ impl GltfId {
             Self::Box => "Box/glTF/Box.gltf",
             Self::BoxInterleaved => "BoxInterleaved/glTF/BoxInterleaved.gltf",
             Self::BoxTextured => "BoxTextured/glTF/BoxTextured.gltf",
+            Self::BoxTexturedNpoT => "BoxTexturedNonPowerOfTwo/glTF/BoxTexturedNonPowerOfTwo.gltf",
+            Self::BoxWithSpaces => "Box With Spaces/glTF/Box With Spaces.gltf",
+            Self::BoxVertexColors => "BoxVertexColors/glTF/BoxVertexColors.gltf",
+            Self::Cube => "Cube/glTF/Cube.gltf",
         }
     }
 
@@ -111,6 +123,10 @@ impl GltfId {
             Self::Box => "Standard/Box",
             Self::BoxInterleaved => "Standard/BoxInterleaved",
             Self::BoxTextured => "Standard/BoxTextured",
+            Self::BoxTexturedNpoT => "Standard/BoxTextured non-power-of-2",
+            Self::BoxWithSpaces => "Standard/Box with spaces",
+            Self::BoxVertexColors => "Standard/Box vertex colors",
+            Self::Cube => "Standard/Cube",
         }
     }
 

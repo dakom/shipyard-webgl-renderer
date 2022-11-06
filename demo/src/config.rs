@@ -18,11 +18,9 @@ cfg_if::cfg_if! {
         pub const URI_ROOT:&'static str = "";
         pub const CONFIG: Lazy<Config> = Lazy::new(|| {
             Config {
-                init_gltf: Some(GltfId::BoxTextured),
-                //init_gltf: Some(GltfId::InterpolationTest),
-                //init_gltf: Some(GltfId::SimpleSkin),
-                //init_gltf: Some(GltfId::SimpleMorph),
-                //init_gltf: Some(GltfId::AnimatedTriangle),
+                init_gltf: Some(GltfId::BoxWithSpaces),
+                //init_gltf: Some(GltfId::BoxVertexColors),
+                //init_gltf: Some(GltfId::Cube),
                 gltf_url: "/media/glTF-Sample-Models/2.0",
                 image_url: "/media/image",
             }

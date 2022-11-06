@@ -9,9 +9,13 @@ use awsm_web::webgl::{
     TextureMagFilter,
     PixelFormat,
     WebGlTextureSource,
-    TextureWrapMode
+    TextureWrapMode, TextureOptions, PixelInternalFormat, PixelDataFormat, DataType, WebGl2Renderer, WebGlSpecific, PartialWebGlTextures,
+    TextureWrapTarget,
+    is_power_of_2
+        
 };
 use gltf::{Texture, texture::{MinFilter, MagFilter, WrappingMode}};
+use web_sys::WebGl2RenderingContext;
 impl AwsmRenderer {
     // see https://github.com/KhronosGroup/glTF-Sample-Viewer/blob/78e6453306923f1c0df3220d45a2e0656b80c326/source/gltf/accessor.js#L30
     pub(super) fn gltf_get_texture(&mut self, res: &GltfResource, ctx: &mut GltfPopulateContext, gltf_texture: &Texture) -> Result<Id> {
@@ -27,52 +31,90 @@ impl AwsmRenderer {
 
                 let sampler = gltf_texture.sampler();
 
-                self.gl.assign_simple_texture(
-                    id,
-                    TextureTarget::Texture2d,
-                    &SimpleTextureOptions {
-                        flip_y: Some(true),
-                        filter_min: match sampler.min_filter() {
-                            Some(filter) => {
-                                Some(match filter {
+
+                let use_mips = match sampler.min_filter() {
+                    Some(min_filter) => {
+                        match min_filter {
+                            MinFilter::Nearest => false, 
+                            MinFilter::Linear => false, 
+                            MinFilter::NearestMipmapNearest => true,
+                            MinFilter::LinearMipmapNearest => true,
+                            MinFilter::NearestMipmapLinear => true,
+                            MinFilter::LinearMipmapLinear => true,
+                        }
+                    },
+                    None => false 
+                };
+
+                let src = &WebGlTextureSource::ImageElement(image);
+                if use_mips && !is_power_of_2(src) {
+                    // do nothing... webgl2 supports mipmapping non-power-of-2
+                }
+
+                self.gl.assign_texture(
+                    id, 
+                    TextureTarget::Texture2d, 
+                    &TextureOptions{
+                        internal_format: PixelInternalFormat::Rgba,
+                        data_format: PixelDataFormat::Rgba,
+                        data_type: DataType::UnsignedByte,
+                        cube_face: None
+                    },
+                    Some(|gl:&WebGl2RenderingContext| {
+
+                        gl.pixel_storei(WebGlSpecific::UnpackFlipY as u32, 1);
+                        gl.pixel_storei(WebGlSpecific::UnpackColorspaceConversion as u32, 0);
+                   
+
+                        let min_filter = match sampler.min_filter() {
+                            Some(min_filter) => {
+                                match min_filter {
                                     MinFilter::Nearest => TextureMinFilter::Nearest,
                                     MinFilter::Linear => TextureMinFilter::Linear,
                                     MinFilter::NearestMipmapNearest => TextureMinFilter::NearestMipMapNearest,
                                     MinFilter::LinearMipmapNearest => TextureMinFilter::LinearMipMapNearest,
                                     MinFilter::NearestMipmapLinear => TextureMinFilter::NearestMipMapLinear,
                                     MinFilter::LinearMipmapLinear => TextureMinFilter::LinearMipMapLinear,
-                                })
+                                }
                             },
-                            // for sure same default?
-                            None => None,
-                        },
-                        filter_mag: match sampler.mag_filter() {
-                            Some(filter) => {
-                                Some(match filter {
+                            None => TextureMinFilter::Linear
+                        };
+
+                        gl.awsm_texture_set_min_filter(TextureTarget::Texture2d, min_filter);
+
+                        let mag_filter = match sampler.mag_filter() {
+                            Some(mag_filter) => {
+                                match mag_filter {
                                     MagFilter::Nearest => TextureMagFilter::Nearest,
                                     MagFilter::Linear => TextureMagFilter::Linear,
-                                })
+                                }
                             },
-                            // for sure same default?
-                            None => None,
-                        },
-                        wrap_s: Some(match sampler.wrap_s() {
-                            WrappingMode::ClampToEdge => TextureWrapMode::ClampToEdge,
-                            WrappingMode::MirroredRepeat => TextureWrapMode::MirroredRepeat,
-                            WrappingMode::Repeat => TextureWrapMode::Repeat,
-                        }),
-                        wrap_t: Some(match sampler.wrap_t() {
-                            WrappingMode::ClampToEdge => TextureWrapMode::ClampToEdge,
-                            WrappingMode::MirroredRepeat => TextureWrapMode::MirroredRepeat,
-                            WrappingMode::Repeat => TextureWrapMode::Repeat,
-                        }),
+                            None => TextureMagFilter::Linear
+                        };
 
-                        // is this always right?
-                        pixel_format: PixelFormat::Rgba,
-                        ..SimpleTextureOptions::default()
-                    },
-                    &WebGlTextureSource::ImageElement(image)
+                        gl.awsm_texture_set_mag_filter(TextureTarget::Texture2d, mag_filter);
+
+                        let wrap_s = match sampler.wrap_s() {
+                            WrappingMode::ClampToEdge => TextureWrapMode::ClampToEdge,
+                            WrappingMode::MirroredRepeat => TextureWrapMode::MirroredRepeat,
+                            WrappingMode::Repeat => TextureWrapMode::Repeat,
+                        };
+                        let wrap_t = match sampler.wrap_t() {
+                            WrappingMode::ClampToEdge => TextureWrapMode::ClampToEdge,
+                            WrappingMode::MirroredRepeat => TextureWrapMode::MirroredRepeat,
+                            WrappingMode::Repeat => TextureWrapMode::Repeat,
+                        };
+
+                        gl.awsm_texture_set_wrap(TextureTarget::Texture2d, TextureWrapTarget::S, wrap_s);
+                        gl.awsm_texture_set_wrap(TextureTarget::Texture2d, TextureWrapTarget::T, wrap_t);
+
+                    }), 
+                    src 
                 )?;
+
+                if use_mips {
+                    self.gl.gl.generate_mipmap(TextureTarget::Texture2d as u32);
+                }
 
                 entry.insert(id.clone());
                 Ok(id)
@@ -80,10 +122,3 @@ impl AwsmRenderer {
         }
     }
 }
-
-
-    //pub mag_filter: Option<Checked<MagFilter>>,
-    //pub min_filter: Option<Checked<MinFilter>>,
-    //pub wrap_s: Checked<WrappingMode>,
-    //pub wrap_t: Checked<WrappingMode>,
-

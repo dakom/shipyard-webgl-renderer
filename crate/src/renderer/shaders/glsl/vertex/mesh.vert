@@ -19,11 +19,14 @@ precision mediump float;
 
 % INCLUDES_MORPH_VARS %
 
+% INCLUDES_TEXTURE_VARS %
+
+% INCLUDES_MATERIAL_VARS %
+
 layout(location=0) in vec3 a_position;
 
 uniform mat4 u_model;
 
-out vec2 v_uv;
 out vec3 v_pos;
 
 void main() {
@@ -50,6 +53,7 @@ void main() {
         v_normal = normal;
     #endif
 
+    % INCLUDES_ASSIGN_MATERIAL_VARS %
     gl_Position = mvp * vec4(position, 1);
 }
 

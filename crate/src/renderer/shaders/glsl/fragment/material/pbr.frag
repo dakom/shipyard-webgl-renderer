@@ -1,10 +1,17 @@
+% INCLUDES_PBR_VARS %
 #define PBR_MATERIAL
 
 const float c_MinRoughness = 0.04;
 
 #ifdef HAS_BASECOLORMAP
-    uniform sampler2D u_BaseColorSampler;
-    uniform float u_AlphaCutoff; 
+    uniform sampler2D u_base_color_sampler;
+    uniform float u_alpha_cutoff; 
+    in vec2 v_base_color_uv;
+#endif
+
+#ifdef HAS_METALROUGHNESSMAP
+    uniform sampler2D u_metallic_roughness_sampler;
+    in vec2 v_metallic_roughness_uv;
 #endif
 
 
@@ -13,9 +20,6 @@ const float c_MinRoughness = 0.04;
     uniform vec3 u_EmissiveFactor;
 #endif
 
-#ifdef HAS_METALROUGHNESSMAP
-    uniform sampler2D u_MetallicRoughnessSampler;
-#endif
 
 #ifdef HAS_OCCLUSIONMAP
     uniform sampler2D u_OcclusionSampler;
@@ -46,7 +50,7 @@ struct Pbr
 vec4 getBaseColor() {
     // The albedo may be defined from a base texture or a flat color
     #ifdef HAS_BASECOLORMAP
-        vec4 textureColor = texture2D(u_BaseColorSampler, v_UV);
+        vec4 textureColor = texture(u_base_color_sampler, v_base_color_uv);
         vec4 baseColor = SRGBtoLINEAR(textureColor) * u_base_color_factor;
     #else
         vec4 baseColor = u_base_color_factor;
@@ -64,7 +68,7 @@ Pbr getPbr() {
     #ifdef HAS_METALROUGHNESSMAP
     // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-    vec4 mrSample = texture2D(u_MetallicRoughnessSampler, v_UV);
+    vec4 mrSample = texture(u_metallic_roughness_sampler, v_metallic_roughness_uv);
     perceptualRoughness = mrSample.g * perceptualRoughness;
     metallic = mrSample.b * metallic;
     #endif
