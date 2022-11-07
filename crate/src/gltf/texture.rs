@@ -62,7 +62,7 @@ impl AwsmRenderer {
                     },
                     Some(|gl:&WebGl2RenderingContext| {
 
-                        gl.pixel_storei(WebGlSpecific::UnpackFlipY as u32, 1);
+                        //gl.pixel_storei(WebGlSpecific::UnpackFlipY as u32, 1);
                         gl.pixel_storei(WebGlSpecific::UnpackColorspaceConversion as u32, 0);
                    
 

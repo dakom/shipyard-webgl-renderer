@@ -29,5 +29,8 @@ void main() {
         vec3 diffuse = light.NdotL * light.color * light.falloff * light.intensity;
     #endif
 
+    // hardcoded ambient term for now
+    diffuse = clamp(vec3(.2) + diffuse, 0.0, 1.0);
+
     fragment_color = vec4(diffuse, 1.0);
 }
