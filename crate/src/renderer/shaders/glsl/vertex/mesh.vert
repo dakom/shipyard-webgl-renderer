@@ -54,6 +54,7 @@ void main() {
     #endif
 
     % INCLUDES_ASSIGN_MATERIAL_VARS %
+
     gl_Position = mvp * vec4(position, 1);
 }
 

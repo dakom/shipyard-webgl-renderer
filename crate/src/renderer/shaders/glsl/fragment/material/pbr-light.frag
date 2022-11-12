@@ -2,7 +2,7 @@
 // Implementation from Lambert's Photometria https://archive.org/details/lambertsphotome00lambgoog
 // See also [1], Equation 1
 //
-vec3 pbr_diffuse(Pbr pbr, FragmentVectors fvectors, Light light)
+vec3 pbr_diffuse(Pbr pbr)
 {
     return pbr.diffuseColor / PI;
 }
@@ -46,7 +46,7 @@ vec3 pbr_lightColor(Pbr pbr, FragmentVectors fvectors, Light light) {
     float D = pbr_microfacetDistribution(pbr, fvectors, light);
 
     // Calculation of analytical lighting contribution
-    vec3 diffuseAmt = pbr_diffuse(pbr, fvectors, light);
+    vec3 diffuseAmt = pbr_diffuse(pbr);
     vec3 specAmt = F * (G * D);
 
     vec3 diffuseContrib = (1.0 - F) * diffuseAmt; 
@@ -61,3 +61,7 @@ vec3 pbr_lightColor(Pbr pbr, FragmentVectors fvectors, Light light) {
     return color;
 }
 
+vec3 pbr_ambient(Pbr pbr, vec3 ambientLight) {
+    vec3 diffuseAmt = pbr_diffuse(pbr);
+    return diffuseAmt * ambientLight;
+}

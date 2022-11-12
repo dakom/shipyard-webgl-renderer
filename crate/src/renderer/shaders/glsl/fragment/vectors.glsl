@@ -60,6 +60,7 @@ FragmentVectors getFragmentVectors(vec2 normal_uv) {
     Camera camera = getCamera();
 
     vec3 normal = getNormal(normal_uv);
+
     vec3 surfaceToCamera = normalize(camera.position - v_pos); 
     vec3 reflection = -normalize(reflect(surfaceToCamera, normal));
     float NdotV = abs(dot(normal, surfaceToCamera)) + 0.001;

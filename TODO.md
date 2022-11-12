@@ -1,1 +1,1 @@
-* fix normals
+* use BRDF and lighting from reference
