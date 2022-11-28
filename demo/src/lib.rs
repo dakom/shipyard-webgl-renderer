@@ -9,6 +9,7 @@ pub mod utils;
 pub mod world;
 pub mod gltf;
 pub mod camera;
+pub mod light;
 
 use wasm_bindgen::prelude::*;
 

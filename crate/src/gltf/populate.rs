@@ -1,7 +1,7 @@
 use crate::{
     prelude::*, 
     gltf::component::GltfPrimitive, 
-    animation::clip::AnimationClip,
+    animation::clip::AnimationClip, light::Light,
 };
 use anyhow::bail;
 use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}, Node};
@@ -85,6 +85,15 @@ impl AwsmRenderer {
                 }
             }
         }
+
+        // TODO - iterate over gltf lights and turn into light components
+
+        let existing_light_len = match world.borrow::<View<Light>>() {
+            Err(_) => 0,
+            Ok(light) => light.iter().count() as u32
+        };
+        self.update_max_lights(world, self.lights.max_lights.max(existing_light_len))?;
+
 
         // add mesh components, creating primitive children as-needed
         for (node_index, entity) in gltf_entities.iter() {

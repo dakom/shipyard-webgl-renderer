@@ -63,7 +63,7 @@ impl DestroyWithGl for DrawBuffers {
 impl DrawBuffers {
     pub fn new(renderer: &mut AwsmRenderer, mode: DrawBufferMode) -> Result<Self> {
         let (_, _, width, height) = renderer.gl.get_viewport();
-        let composite_program_id = renderer.shaders.programs.draw_buffers_composite;
+        let composite_program_id = renderer.shaders.programs.draw_buffers_quad_texture;
         let clear_color = renderer.config.clear_color;
         //let quad = Quad::new(gl)?;
 

@@ -36,36 +36,6 @@ impl Camera {
         })
     }
 
-    pub fn update_ubo(&mut self, gl: &mut WebGl2Renderer) -> Result<bool> {
-
-        if let Some(active) = &mut self.active {
-            match active {
-                CameraKind::ArcBall(camera) => {
-                    camera.view().write_to_vf32(&mut self.scratch_buffer[0..16]);
-                    camera.projection().write_to_vf32(&mut self.scratch_buffer[16..32]);
-                    camera.position().write_to_vf32(&mut self.scratch_buffer[32..]);
-                }
-                CameraKind::ScreenStatic(camera) => {
-                    camera.view().write_to_vf32(&mut self.scratch_buffer[0..16]);
-                    camera.projection().write_to_vf32(&mut self.scratch_buffer[16..32]);
-                    camera.position().write_to_vf32(&mut self.scratch_buffer[32..]);
-                }
-            }
-
-            gl.upload_uniform_buffer_f32(
-                self.buffer_id,
-                &self.scratch_buffer,
-                BufferUsage::DynamicDraw,
-            )?;
-
-            gl.activate_uniform_buffer_loc(self.buffer_id, UBO_CAMERA);
-
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
     pub fn get_active_dyn(&self) -> Option<&dyn CameraBase> {
 
         self.active.as_ref().map(|active| -> &dyn CameraBase {
@@ -79,9 +49,11 @@ impl Camera {
             }
         })
     }
+}
 
-    pub fn resize(&mut self, gl: &mut WebGl2Renderer, width: u32, height: u32) -> Result<()> {
-        if let Some(active) = &mut self.active {
+impl AwsmRenderer {
+    pub fn resize_camera(&mut self, width: u32, height: u32) -> Result<()> {
+        if let Some(active) = &mut self.camera.active {
             match active {
                 CameraKind::ArcBall(camera) => {
                     camera.update_viewport(width, height);
@@ -92,8 +64,38 @@ impl Camera {
             }
         }
 
-        self.update_ubo(gl)?;
+        self.update_camera_ubo()?;
 
         Ok(())
     }
+    pub fn update_camera_ubo(&mut self) -> Result<bool> {
+        let gl = &mut self.gl;
+        if let Some(active) = &mut self.camera.active {
+            match active {
+                CameraKind::ArcBall(camera) => {
+                    camera.view().write_to_vf32(&mut self.camera.scratch_buffer[0..16]);
+                    camera.projection().write_to_vf32(&mut self.camera.scratch_buffer[16..32]);
+                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[32..]);
+                }
+                CameraKind::ScreenStatic(camera) => {
+                    camera.view().write_to_vf32(&mut self.camera.scratch_buffer[0..16]);
+                    camera.projection().write_to_vf32(&mut self.camera.scratch_buffer[16..32]);
+                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[32..]);
+                }
+            }
+
+            gl.upload_uniform_buffer_f32(
+                self.camera.buffer_id,
+                &self.camera.scratch_buffer,
+                BufferUsage::DynamicDraw,
+            )?;
+
+            gl.activate_uniform_buffer_loc(self.camera.buffer_id, UBO_CAMERA);
+
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
 }

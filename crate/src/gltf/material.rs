@@ -7,6 +7,13 @@ use super::loader::GltfResource;
 impl AwsmRenderer {
     pub(super) fn gltf_make_material(&mut self, world: &World, res: &GltfResource, ctx: &mut GltfPopulateContext, gltf_material: gltf::Material) -> Result<Material> {
 
+        if gltf_material.normal_texture().is_some() {
+            log::warn!("TODO - material normal texture");
+        }
+        if gltf_material.emissive_texture().is_some() {
+            log::warn!("TODO - emissive texture texture");
+        }
+
         let gltf_metallic_roughness = gltf_material.pbr_metallic_roughness();
 
         let metallic_roughness = PbrMetallicRoughness {

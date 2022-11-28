@@ -15,7 +15,7 @@ use shipyard_scenegraph::{prelude::*, init::init_scenegraph};
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use std::ops::{Deref, DerefMut};
 use anyhow::Result;
-use crate::{prelude::*, camera::Camera, animation::clock::AnimationClock};
+use crate::{prelude::*, camera::Camera, light::Lights, animation::clock::AnimationClock};
 use self::{draw_buffers::{DrawBuffers, DrawBufferMode}, shaders::ShaderCache};
 use cleanup::DestroyWithGl;
 
@@ -26,6 +26,7 @@ pub struct AwsmRenderer {
     pub shaders: ShaderCache,
     pub draw_buffers: Option<DrawBuffers>,
     pub camera: Camera,
+    pub lights: Lights,
     //pub programs: Programs,
     //pub vaos: Vaos,
     //pub buffers: Buffers,
@@ -69,6 +70,7 @@ impl AwsmRenderer {
 
         let shaders = ShaderCache::new(&mut gl)?;
         let camera = Camera::new(&mut gl)?;
+        let lights = Lights::new(&mut gl)?;
 
         world.add_unique(AnimationClock::new());
 
@@ -81,7 +83,8 @@ impl AwsmRenderer {
             config,
             shaders,
             draw_buffers: None,
-            camera
+            camera,
+            lights
         })
     }
 
@@ -103,7 +106,7 @@ impl AwsmRenderer {
             )?
         );
 
-        self.camera.resize(&mut self.gl, width, height);
+        self.resize_camera(width, height);
 
         Ok(())
     }

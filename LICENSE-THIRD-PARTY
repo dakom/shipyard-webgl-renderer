@@ -1,3 +1,5 @@
+---- some of the shader code derived from https://github.com/KhronosGroup/glTF-Sample-Viewer under the Apache License ---
+
 ---- some of the camera code derived from https://github.com/sebcrozet/kiss3d under the following license ---
 
 Copyright (c) 2013, SŽbastien Crozet
@@ -27,3 +29,5 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+

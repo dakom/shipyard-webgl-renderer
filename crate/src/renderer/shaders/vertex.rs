@@ -4,9 +4,11 @@ use beach_map::{BeachMap, DefaultVersion};
 use rustc_hash::FxHashMap;
 use std::collections::hash_map::Entry;
 
-const MESH_VERTEX_BASE:&'static str = include_str!("./glsl/vertex/mesh.vert");
+const ENTRY_MESH:&'static str = include_str!("./glsl/vertex/mesh.vert");
+const ENTRY_QUAD_UNIT:&'static str = include_str!("./glsl/vertex/quad-unit.vert");
+const ENTRY_QUAD_FULLSCREEN:&'static str = include_str!("./glsl/vertex/quad-full-screen.vert");
 
-use super::{COMMON_CAMERA, COMMON_HELPERS, MeshFragmentShaderKey, MeshFragmentShaderMaterialPbrKey, MeshFragmentShaderMaterialKey};
+use super::{COMMON_CAMERA, COMMON_MATH, MeshFragmentShaderKey, MeshFragmentShaderPbrKey};
 
 pub(crate) struct VertexCache {
     pub quad_unit: Id,
@@ -17,8 +19,8 @@ pub(crate) struct VertexCache {
 impl VertexCache { 
     pub fn new(gl:&mut WebGl2Renderer) -> Result<Self> {
         Ok(Self {
-            quad_unit: gl.compile_shader(include_str!("./glsl/vertex/quad-unit.glsl"), ShaderType::Vertex)?,
-            quad_full_screen: gl.compile_shader(include_str!("./glsl/vertex/quad-full-screen.glsl"), ShaderType::Vertex)?,
+            quad_unit: gl.compile_shader(ENTRY_QUAD_UNIT, ShaderType::Vertex)?,
+            quad_full_screen: gl.compile_shader(ENTRY_QUAD_FULLSCREEN, ShaderType::Vertex)?,
             mesh: FxHashMap::default()
         })
     }
@@ -46,7 +48,7 @@ pub struct MeshVertexShaderKey {
     pub n_morph_target_weights: u8,
     pub n_skin_joints: u8,
     pub tex_coords: Option<Vec<u32>>,
-    pub fragment_key: MeshFragmentShaderKey,
+    pub fragment_key: Option<MeshFragmentShaderKey>,
     pub attribute_normals: bool,
     pub attribute_tangents: bool,
 }
@@ -66,13 +68,13 @@ pub struct SkinTarget {
 
 impl MeshVertexShaderKey {
     fn into_code(&self) -> Result<String> {
-        let mut res = MESH_VERTEX_BASE
-            .replace("% INCLUDES_HELPERS %", COMMON_HELPERS)
-            .replace("% INCLUDES_CAMERA %", COMMON_CAMERA);
+        let mut res = ENTRY_MESH
+            .replace("% INCLUDES_COMMON_MATH %", COMMON_MATH)
+            .replace("% INCLUDES_COMMON_CAMERA %", COMMON_CAMERA);
 
         res = res.replace("% INCLUDES_NORMALS %", {
             if self.attribute_normals {
-                "#define HAS_NORMALS\n"
+                "#define ATTRIBUTE_NORMALS\n"
             } else {
                 ""
             }
@@ -80,7 +82,7 @@ impl MeshVertexShaderKey {
 
         res = res.replace("% INCLUDES_TANGENTS %", {
             if self.attribute_tangents {
-                "#define HAS_TANGENTS\n"
+                "#define ATTRIBUTE_TANGENTS\n"
             } else {
                 ""
             }
@@ -191,9 +193,9 @@ impl MeshVertexShaderKey {
 
         res = res.replace("% INCLUDES_MATERIAL_VARS %", &{
             let mut s = "".to_string();
-            if let Some(material) = &self.fragment_key.material {
-                match material {
-                    MeshFragmentShaderMaterialKey::Pbr(pbr) => {
+            if let Some(fragment_key) = &self.fragment_key {
+                match fragment_key {
+                    MeshFragmentShaderKey::Pbr(pbr) => {
                         if pbr.metallic_roughness_texture_uv_index.is_some() {
                             s.push_str(r#"
                                 out vec2 v_metallic_roughness_uv;
@@ -211,9 +213,9 @@ impl MeshVertexShaderKey {
         });
         res = res.replace("% INCLUDES_ASSIGN_MATERIAL_VARS %", &{
             let mut s = "".to_string();
-            if let Some(material) = &self.fragment_key.material {
-                match material {
-                    MeshFragmentShaderMaterialKey::Pbr(pbr) => {
+            if let Some(fragment_key) = &self.fragment_key {
+                match fragment_key {
+                    MeshFragmentShaderKey::Pbr(pbr) => {
                         if let Some(index) = pbr.metallic_roughness_texture_uv_index {
                             s.push_str(&format!("v_metallic_roughness_uv = a_tex_coord_{index};\n"));
                         }
@@ -223,6 +225,7 @@ impl MeshVertexShaderKey {
                     }
                 }
             }
+
             s
         });
         //log::info!("{}", res);

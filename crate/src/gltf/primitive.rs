@@ -2,7 +2,7 @@ use crate::{
     prelude::*, 
     gltf::component::GltfPrimitive, 
     animation::clip::AnimationClip,
-    renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget, MeshFragmentNormal},
+    renderer::shaders::{MeshVertexShaderKey, MeshFragmentShaderKey, SkinTarget, MeshFragmentNormal, MeshFragmentShaderPbrKey},
 };
 use anyhow::bail;
 use gltf::{Semantic, mesh::Mode, scene::Transform, animation::{Sampler, Property}};
@@ -84,8 +84,17 @@ impl AwsmRenderer {
         } else {
 
             let mut buffer_ids = Vec::new();
-            let mut vertex_shader = MeshVertexShaderKey::default();
-            let mut fragment_shader = MeshFragmentShaderKey::default();
+            let mut vertex_shader_key = MeshVertexShaderKey::default();
+
+            let material = self.gltf_make_material(world, res, ctx, primitive.material())?;
+            let mut fragment_shader_key:MeshFragmentShaderPbrKey = match &material {
+                Material::Pbr(pbr) => {
+                    pbr.into()
+                },
+                _ => {
+                    bail!("gltf without pbr material is unsupported");
+                }
+            };
 
             let vao_id = self.gl.create_vertex_array()?;
 
@@ -99,7 +108,7 @@ impl AwsmRenderer {
             let mut texture_coords_map:FxHashMap<u32, u32> = FxHashMap::default();
 
             if let Some(skin_info) = ctx.get_skin_info(mesh_node)? {
-                vertex_shader.n_skin_joints = skin_info.joint_entities.len() as u8
+                vertex_shader_key.n_skin_joints = skin_info.joint_entities.len() as u8
             }
 
             for (semantic, accessor) in primitive.attributes() {
@@ -115,8 +124,8 @@ impl AwsmRenderer {
                     Semantic::Normals => {
                         //log::info!("NORMALS");
                         //log::info!("{:#?}", gltf_accessor_to_vec3s(res, &accessor)?);
-                        vertex_shader.attribute_normals = true;
-                        fragment_shader.normal = Some(MeshFragmentNormal::Loc(ATTRIBUTE_NORMAL));
+                        vertex_shader_key.attribute_normals = true;
+                        fragment_shader_key.normal = Some(MeshFragmentNormal::Loc(ATTRIBUTE_NORMAL));
                         //fragment_shader.varying_normals = true;
 
                         let loc = NameOrLoc::Loc(ATTRIBUTE_NORMAL);
@@ -125,7 +134,9 @@ impl AwsmRenderer {
                         vao_data.push(data);
                     },
                     Semantic::Tangents => {
-                        vertex_shader.attribute_tangents = true;
+                        log::warn!("TANGENTS");
+                        log::warn!("{:#?}", gltf_accessor_to_quats(res, &accessor)?);
+                        vertex_shader_key.attribute_tangents = true;
                         let loc = NameOrLoc::Loc(ATTRIBUTE_TANGENT);
                         let data = self.upload_accessor_to_vao_data(res, &accessor, loc, Some(BufferTarget::ArrayBuffer))?;
                         buffer_ids.push(data.buffer_id.clone());
@@ -163,7 +174,7 @@ impl AwsmRenderer {
             }
 
             for (key, joint_loc) in skin_joint_map {
-                vertex_shader.skin_targets.push(SkinTarget {
+                vertex_shader_key.skin_targets.push(SkinTarget {
                     weight_loc: *skin_weight_map.get(&key).ok_or_else(|| anyhow::anyhow!("no corresponding weight attribute for joint {}", key))?,
                     joint_loc,
                 });
@@ -175,7 +186,7 @@ impl AwsmRenderer {
                     let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
                     buffer_ids.push(data.buffer_id);
                     vao_data.push(data);
-                    vertex_shader.morph_targets.push(crate::renderer::shaders::MorphTarget::Position{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
+                    vertex_shader_key.morph_targets.push(crate::renderer::shaders::MorphTarget::Position{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
                     dynamic_loc += 1;
                 }
 
@@ -184,7 +195,7 @@ impl AwsmRenderer {
                     let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
                     buffer_ids.push(data.buffer_id);
                     vao_data.push(data);
-                    vertex_shader.morph_targets.push(crate::renderer::shaders::MorphTarget::Normal{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
+                    vertex_shader_key.morph_targets.push(crate::renderer::shaders::MorphTarget::Normal{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
                     dynamic_loc += 1;
                 }
 
@@ -192,11 +203,11 @@ impl AwsmRenderer {
                     let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
                     buffer_ids.push(data.buffer_id);
                     vao_data.push(data);
-                    vertex_shader.morph_targets.push(crate::renderer::shaders::MorphTarget::Tangent{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
+                    vertex_shader_key.morph_targets.push(crate::renderer::shaders::MorphTarget::Tangent{loc: dynamic_loc, weight_index: Some(weight_index as u32)});
                     dynamic_loc += 1;
                 }
 
-                vertex_shader.n_morph_target_weights += 1;
+                vertex_shader_key.n_morph_target_weights += 1;
             }
 
             let element_buffer_id = match primitive.indices() {
@@ -219,41 +230,39 @@ impl AwsmRenderer {
             if !texture_coords_map.is_empty() {
                 let mut texture_coords:Vec<(u32, u32)> = texture_coords_map.into_iter().collect();
                 texture_coords.sort_by(|a, b| a.0.cmp(&b.0));
-                vertex_shader.tex_coords = Some(texture_coords.into_iter().map(|(_, loc)| loc).collect());
+                vertex_shader_key.tex_coords = Some(texture_coords.into_iter().map(|(_, loc)| loc).collect());
             }
 
-            let mesh_morph_weights = if !vertex_shader.morph_targets.is_empty() {
+            let mesh_morph_weights = if !vertex_shader_key.morph_targets.is_empty() {
                 let values = match mesh_node.weights() {
                     Some(weights) => weights.to_vec(),
                     None => match mesh.weights() {
                         Some(weights) => weights.to_vec(),
                         None => {
-                            vec![0.0;vertex_shader.morph_targets.len()]
+                            vec![0.0;vertex_shader_key.morph_targets.len()]
                         }
                     }
                 };
 
-                debug_assert_eq!(values.len(), vertex_shader.n_morph_target_weights as usize);
+                debug_assert_eq!(values.len(), vertex_shader_key.n_morph_target_weights as usize);
 
                 Some(MeshMorphWeights(values))
             } else {
                 None 
             };
 
-            let material = self.gltf_make_material(world, res, ctx, primitive.material())?;
-            match &material {
-                Material::Pbr(pbr) => {
-                    fragment_shader.material = Some(pbr.into());
-                }
-            }
 
-            vertex_shader.fragment_key = fragment_shader.clone();
+            let fragment_shader_key = MeshFragmentShaderKey::Pbr(fragment_shader_key);
+            vertex_shader_key.fragment_key = Some(fragment_shader_key.clone());
 
-            let program_id = self.shaders.mesh_program(&mut self.gl, vertex_shader, fragment_shader)?;
+            // just to pre-compile
+            let program_id = self.mesh_program(vertex_shader_key.clone(), fragment_shader_key.clone(), self.lights.max_lights)?;
 
             let mesh = Mesh{
                 vao_id,
                 buffer_ids,
+                vertex_shader_key,
+                fragment_shader_key,
                 program_id,
                 skin_joints: match ctx.get_skin_info(mesh_node)? {
                     None => Vec::new(),

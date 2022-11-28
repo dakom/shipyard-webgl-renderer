@@ -8,15 +8,19 @@ use awsm_web::webgl::{
 };
 use super::draw_buffers::DrawBuffers;
 use super::cleanup::DestroyWithGl;
-use crate::camera::{
-    screen_static::ScreenStatic,
-    arc_ball::ArcBall
+use crate::{
+    prelude::*,
+    camera::{
+        screen_static::ScreenStatic,
+        arc_ball::ArcBall
+    },
+    light::Light
 };
-use crate::prelude::*;
 
 pub fn render_sys(
     renderer: &mut AwsmRenderer,
     meshes:View<Mesh>, 
+    lights:View<Light>, 
     mesh_morph_weights: View<MeshMorphWeights>, 
     mesh_skin_joints: View<MeshSkinJoint>, 
     materials:View<Material>, 
@@ -25,10 +29,13 @@ pub fn render_sys(
     world_transforms: View<WorldTransform>,
 ) -> Result<()> {
     let renderer:&mut AwsmRenderer = &mut *renderer;
-    let gl = &mut renderer.gl;
-    if !renderer.camera.update_ubo(gl)? {
+
+    renderer.update_lights_ubo((&world_transforms, &lights).iter())?;
+    if !renderer.update_camera_ubo()? {
         return Ok(());
     }
+
+    let gl = &mut renderer.gl;
     match (renderer.draw_buffers.as_mut(), renderer.camera.active.as_mut()) {
         
         (Some(draw_buffers), Some(camera)) => {
@@ -78,7 +85,7 @@ pub fn render_sys(
                             gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.metallic_roughness.base_color_factor.as_slice());
                             let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, pbr.metallic_roughness.roughness_factor];
 
-                            gl.upload_uniform_fvec_name("u_metallic_roughness", UniformType::Vector2, &metallic_roughness);
+                            gl.upload_uniform_fvec_name("u_metallic_roughness_factors", UniformType::Vector2, &metallic_roughness);
 
                             if let Some(tex) = &pbr.metallic_roughness.metallic_roughness_texture {
 
@@ -92,6 +99,7 @@ pub fn render_sys(
                             }
                         }
                     }
+
 
                     match mesh.draw_strategy {
                         DrawStrategy::Arrays { mode, first, count } => {
