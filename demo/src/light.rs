@@ -8,28 +8,41 @@ impl GltfId {
         match self {
             _ => {
                 vec![
+                    // left
                     (
-                        Vec3::new(5.0, 5.0, 5.0),
+                        Vec3::new(-10.0, -10.0, 10.0),
                         Light::Point{ 
                             color: Vec3::new(1.0, 1.0, 1.0), 
-                            intensity: 270.0,
+                            intensity: 700.0,
                             range: 100000.0,
                         }
                     ),
+                    // right
                     (
-                        Vec3::new(-5.0, -5.0, -5.0),
+                        Vec3::new(10.0, -10.0, -10.0),
+                        Light::Point{ 
+                            color: Vec3::new(1.0, 1.0, 1.0), 
+                            intensity: 400.0,
+                            range: 100000.0,
+                        }
+                    ),
+                    // top
+                    (
+                        Vec3::new(0.0, 10.0, 0.0),
                         Light::Point{ 
                             color: Vec3::new(1.0, 1.0, 1.0), 
                             intensity: 300.0,
                             range: 100000.0,
                         }
                     ),
+
+
                     //(
                         //Vec3::default(),
                         //Light::Directional { 
                             //direction: Vec3::new(1.0, 1.0, -1.0), 
                             //color: Vec3::new(1.0, 1.0, 1.0), 
-                            //intensity: 5.0 
+                            //intensity: 3.0 
                         //}
                     //),
                 ]
