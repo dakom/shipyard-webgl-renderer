@@ -81,6 +81,9 @@ impl GltfId {
             Self::AlphaBlendMode => {
                 Point3::new(0.0, 1.0, 8.0)
             },
+            Self::BoomBoxAxes => {
+                Point3::new(0.05, 0.05, 0.05)
+            },
             Self::SimpleSparseAccessor => {
                 Point3::new(0.0, 0.0, 30.0)
             },
@@ -120,12 +123,14 @@ impl GltfId {
 
     pub fn arc_ball_camera_near_plane(&self) -> f64 {
         match self {
+            Self::BoomBoxAxes => 0.0001,
             _ => DEFAULT_ARCBALL_NEAR_PLANE
         }
     }
 
     pub fn arc_ball_camera_far_plane(&self) -> f64 {
         match self {
+            Self::BoomBoxAxes => 10.0,
             _ => DEFAULT_ARCBALL_FAR_PLANE
         }
     }
@@ -145,6 +150,7 @@ impl GltfId {
 
     pub fn screen_static_camera_zoom(&self) -> f64 {
         match self {
+            Self::BoomBoxAxes => 10000.0, 
             Self::SimpleSparseAccessor => 90.0, 
             _ => DEFAULT_SCREEN_STATIC_ZOOM
         }
