@@ -84,6 +84,21 @@ impl GltfId {
             Self::BoomBoxAxes => {
                 Point3::new(0.05, 0.05, 0.05)
             },
+            Self::MetalRoughSpheres | Self::MetalRoughSpheresTextureless => {
+                Point3::new(0.0, 0.0, 20.0)
+            },
+            Self::MorphPrimitives => {
+                Point3::new(1.0, 1.0, 1.0)
+            },
+            Self::Orientation => {
+                Point3::new(15.0, 15.0, 15.0)
+            },
+            Self::TextureSettings => {
+                Point3::new(0.0, 0.0, 20.0)
+            },
+            Self::TextureLinearInterpolation => {
+                Point3::new(0.0, 0.0, 15.0)
+            },
             Self::SimpleSparseAccessor => {
                 Point3::new(0.0, 0.0, 30.0)
             },

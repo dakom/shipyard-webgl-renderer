@@ -27,6 +27,7 @@ vec4 final_color(Material material, LightOutput light_output) {
     #endif
 
         vec3 color = vec3(0);
+
     #ifdef UNLIT
         color = material.base_color.rgb;
     #else

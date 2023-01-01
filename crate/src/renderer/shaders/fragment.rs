@@ -114,6 +114,7 @@ impl ShaderKey {
             res.push_str(&format!("#define MAX_LIGHTS {}\n", max_lights));
         }
 
+
         // basic imports
         res.push_str(&format!(r#"
             {MESH_PBR_DATA_STRUCTS}

@@ -45,6 +45,7 @@ void main() {
         v_position = position;
     #endif
 
+
     gl_Position = mvp * vec4(position, 1);
 }
 

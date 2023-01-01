@@ -16,22 +16,34 @@ use once_cell::sync::Lazy;
 pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
     let mut h = HashMap::new();
 
-    h.insert("Feature tests", vec![
-        GltfId::AlphaBlendMode,
-        GltfId::BoomBoxAxes,
-        GltfId::MetalRoughSpheres,
+    h.insert("Todo", vec![
+        GltfId::TextureSettings,
+        GltfId::TextureLinearInterpolation,
+        GltfId::VertexColor,
         GltfId::MetalRoughSpheresTextureless,
-        GltfId::MorphPrimitives,
         GltfId::MorphStressTest,
         GltfId::MultiUv,
         GltfId::NormalTangent,
         GltfId::NormalTangentMirror,
-        GltfId::Orientation,
         GltfId::RecursiveSkeletons,
+    ]);
+
+    h.insert("Feature tests", vec![
+        GltfId::AlphaBlendMode,
+        GltfId::BoomBoxAxes,
+        GltfId::MetalRoughSpheres,
+        //GltfId::MetalRoughSpheresTextureless,
+        GltfId::MorphPrimitives,
+        //GltfId::MorphStressTest,
+        //GltfId::MultiUv,
+        // GltfId::NormalTangent,
+        // GltfId::NormalTangentMirror,
+        GltfId::Orientation,
+        //GltfId::RecursiveSkeletons,
         GltfId::TextureCoordinate,
-        GltfId::TextureLinearInterpolation,
-        GltfId::TextureSettings,
-        GltfId::VertexColor,
+        //GltfId::TextureLinearInterpolation,
+        //GltfId::TextureSettings,
+        //GltfId::VertexColor,
     ]);
 
     h.insert("Minimal", vec![
@@ -149,7 +161,7 @@ impl GltfId {
             Self::TextureCoordinate => "TextureCoordinateTest/glTF/TextureCoordinateTest.gltf",
             Self::TextureLinearInterpolation => "TextureLinearInterpolationTest/glTF/TextureLinearInterpolationTest.gltf",
             Self::TextureSettings => "TextureSettingsTest/glTF/TextureSettingsTest.gltf",
-            Self::VertexColor => "VertexColorTest/glTF/VertexColor.gltf",
+            Self::VertexColor => "VertexColorTest/glTF/VertexColorTest.gltf",
             // Minimal
             Self::TriangleWithoutIndices => "TriangleWithoutIndices/glTF/TriangleWithoutIndices.gltf",
             Self::Triangle => "Triangle/glTF/Triangle.gltf",
