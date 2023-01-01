@@ -32,20 +32,56 @@ type MaxLights = u32;
 pub(crate) struct ProgramCache {
     pub draw_buffers_quad_texture: Id,
     pub sprite: Id,
-    pub mesh: FxHashMap<(MeshVertexShaderKey, MeshFragmentShaderKey, MaxLights), Id>,
+    pub mesh: FxHashMap<(ShaderKey, MaxLights), Id>,
+}
+
+// merely a key to hash ad-hoc shader generation
+// is not stored on the mesh itself
+//
+// uniform and other runtime data for mesh
+// is controlled via various components as-needed
+#[derive(Hash, Debug, Clone, PartialEq, Eq, Default)]
+pub struct ShaderKey {
+    pub position_attribute_loc: Option<u32>,
+    pub normal_attribute_loc: Option<u32>,
+    pub tangent_attribute_loc: Option<u32>,
+    pub morph_targets: Vec<MorphTarget>,
+    pub skin_targets: Vec<SkinTarget>,
+    pub n_morph_target_weights: u8,
+    pub n_skin_joints: u8,
+    pub tex_coords: Option<Vec<u32>>,
+    pub vertex_colors: Option<Vec<u32>>,
+    pub normal_texture_uv_index: Option<u32>,
+    pub metallic_roughness_texture_uv_index: Option<u32>,
+    pub base_color_texture_uv_index: Option<u32>,
+    pub emissive_texture_uv_index: Option<u32>,
+    pub alpha_mode: ShaderKeyAlphaMode,
+}
+
+#[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ShaderKeyAlphaMode {
+    Opaque,
+    Blend,
+    Mask
+}
+
+impl Default for ShaderKeyAlphaMode {
+    fn default() -> Self {
+        Self::Opaque
+    }
 }
 
 impl AwsmRenderer {
-    pub fn mesh_program(&mut self, vertex: MeshVertexShaderKey, fragment: MeshFragmentShaderKey, max_lights: u32) -> Result<Id> {
+    pub fn mesh_program(&mut self, key: ShaderKey, max_lights: u32) -> Result<Id> {
         let shaders = &mut self.shaders;
         let gl = &mut self.gl;
 
-        match shaders.programs.mesh.entry((vertex.clone(), fragment.clone(), max_lights)) {
+        match shaders.programs.mesh.entry((key.clone(), max_lights)) {
             Entry::Occupied(entry) => Ok(entry.get().clone()),
             Entry::Vacant(entry) => {
 
-                let vertex_id = shaders.vertices.mesh_shader(gl, vertex)?;
-                let fragment_id = shaders.fragments.mesh_shader(gl, fragment, self.lights.max_lights)?;
+                let vertex_id = shaders.vertices.mesh_shader(gl, &key)?;
+                let fragment_id = shaders.fragments.mesh_shader(gl, &key, self.lights.max_lights)?;
                 let program_id = gl.compile_program(&vec![vertex_id, fragment_id])?;
 
                 // need to do for each ubo
@@ -66,7 +102,7 @@ impl AwsmRenderer {
             let mut n_updated = 0;
 
             for mesh in (&mut meshes).iter() {
-                mesh.program_id = self.mesh_program(mesh.vertex_shader_key.clone(), mesh.fragment_shader_key.clone(), max_lights)?;
+                mesh.program_id = self.mesh_program(mesh.shader_key.clone(), max_lights)?;
                 n_updated += 1;
             }
 

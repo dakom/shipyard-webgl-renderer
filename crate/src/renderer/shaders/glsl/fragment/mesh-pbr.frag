@@ -13,6 +13,7 @@ void main() {
     NormalInfo normal_info = get_normal_info();
     Material material = get_material(normal_info);
     Iridescence iridescence = get_iridescence(material, normal_info);
+    LightOutput light_output = get_light_output();
 
     #ifdef IBL
         set_ibl(material, iridescence, light_output);
@@ -22,13 +23,13 @@ void main() {
         float ao = set_ambient_occlusion(light_output);
     #endif
 
-    fragment_color = vec4(0.0, 0.0, 0.0, 1.0);
-
+    // quick ambient hack
+    light_output.f_diffuse = vec3(0.3) * material.c_diff;
     #ifdef MAX_LIGHTS
-        LightOutput light_output = get_light_output();
         % INCLUDES_LIGHT_MAIN %
-        fragment_color = final_color(material, light_output);
     #endif
+
+    fragment_color = final_color(material, light_output);
 
     #ifdef DEBUG_NORMALS
         fragment_color = vec4(normal_info.normal, 1.0); 

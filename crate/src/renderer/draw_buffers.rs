@@ -345,7 +345,7 @@ impl Quad {
             None,
             &vec![
                 VertexArray {
-                    attribute: NameOrLoc::Loc(ATTRIBUTE_POSITION),
+                    attribute: NameOrLoc::Loc(0),
                     buffer_id,
                     opts: AttributeOptions::new(2, DataType::Float),
                 }            

@@ -8,11 +8,11 @@ mod texture;
 pub use texture::*;
 
 #[derive(Component, Clone, Debug)]
-pub enum Material {
-    Pbr(PbrMaterial)
+pub enum MaterialUniforms {
+    Pbr(PbrMaterialUniforms)
 }
 
-impl DestroyWithGl for Material {
+impl DestroyWithGl for MaterialUniforms {
     fn destroy(&mut self, gl:&mut WebGl2Renderer) -> Result<()> {
         Ok(())
     }

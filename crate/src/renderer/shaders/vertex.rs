@@ -3,17 +3,17 @@ use awsm_web::webgl::{Id, WebGl2Renderer, ShaderType};
 use beach_map::{BeachMap, DefaultVersion};
 use rustc_hash::FxHashMap;
 use std::collections::hash_map::Entry;
+use super::{COMMON_CAMERA, COMMON_MATH, ShaderKey};
 
 const ENTRY_MESH:&'static str = include_str!("./glsl/vertex/mesh.vert");
 const ENTRY_QUAD_UNIT:&'static str = include_str!("./glsl/vertex/quad-unit.vert");
 const ENTRY_QUAD_FULLSCREEN:&'static str = include_str!("./glsl/vertex/quad-full-screen.vert");
 
-use super::{COMMON_CAMERA, COMMON_MATH, MeshFragmentShaderKey, MeshFragmentShaderPbrKey};
 
 pub(crate) struct VertexCache {
     pub quad_unit: Id,
     pub quad_full_screen: Id,
-    pub mesh: FxHashMap<MeshVertexShaderKey, Id>,
+    pub mesh: FxHashMap<ShaderKey, Id>,
 }
 
 impl VertexCache { 
@@ -25,32 +25,15 @@ impl VertexCache {
         })
     }
 
-    pub fn mesh_shader(&mut self, mut gl:&mut WebGl2Renderer, info: MeshVertexShaderKey) -> Result<Id> {
-        match self.mesh.entry(info.clone()) {
+    pub fn mesh_shader(&mut self, mut gl:&mut WebGl2Renderer, key: &ShaderKey) -> Result<Id> {
+        match self.mesh.entry(key.clone()) {
             Entry::Occupied(entry) => Ok(entry.get().clone()),
             Entry::Vacant(entry) => {
-                let id = gl.compile_shader(&info.into_code()?, ShaderType::Vertex)?;
+                let id = gl.compile_shader(&key.into_vertex_code()?, ShaderType::Vertex)?;
                 Ok(entry.insert(id).clone())
             }
         }
     }
-}
-
-// merely a key to hash ad-hoc shader generation
-// is not stored on the mesh itself
-//
-// uniform and other runtime data for mesh
-// is controlled via various components as-needed
-#[derive(Hash, Debug, Clone, PartialEq, Eq, Default)]
-pub struct MeshVertexShaderKey {
-    pub morph_targets: Vec<MorphTarget>,
-    pub skin_targets: Vec<SkinTarget>,
-    pub n_morph_target_weights: u8,
-    pub n_skin_joints: u8,
-    pub tex_coords: Option<Vec<u32>>,
-    pub fragment_key: Option<MeshFragmentShaderKey>,
-    pub attribute_normals: bool,
-    pub attribute_tangents: bool,
 }
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
@@ -66,26 +49,44 @@ pub struct SkinTarget {
     pub joint_loc: u32,
 }
 
-impl MeshVertexShaderKey {
-    fn into_code(&self) -> Result<String> {
+impl ShaderKey {
+    fn into_vertex_code(&self) -> Result<String> {
         let mut res = ENTRY_MESH
             .replace("% INCLUDES_COMMON_MATH %", COMMON_MATH)
             .replace("% INCLUDES_COMMON_CAMERA %", COMMON_CAMERA);
 
-        res = res.replace("% INCLUDES_NORMALS %", {
-            if self.attribute_normals {
-                "#define ATTRIBUTE_NORMALS\n"
-            } else {
-                ""
-            }
+        if let Some(vertex_colors) = self.vertex_colors.as_ref() {
+            log::warn!("TODO: vertex colors for {:?}", vertex_colors);
+        }
+
+        res = res.replace("% INCLUDES_POSITION_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(loc) = self.position_attribute_loc {
+                s.push_str(&format!("layout(location={loc}) in vec3 a_position;\n"));
+                s.push_str("out vec3 v_position;\n");
+                s.push_str("#define VARYING_POSITION\n");
+            } 
+            s
         });
 
-        res = res.replace("% INCLUDES_TANGENTS %", {
-            if self.attribute_tangents {
-                "#define ATTRIBUTE_TANGENTS\n"
-            } else {
-                ""
+        res = res.replace("% INCLUDES_NORMAL_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(loc) = self.normal_attribute_loc {
+                s.push_str(&format!("layout(location={loc}) in vec3 a_normal;\n"));
+                s.push_str("out vec3 v_normal;\n");
+                s.push_str("#define VARYING_NORMAL\n");
             }
+            s
+        });
+
+        res = res.replace("% INCLUDES_TANGENT_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(loc) = self.tangent_attribute_loc {
+                s.push_str(&format!("layout(location={loc}) in vec3 a_tangent;\n"));
+                s.push_str("out vec3 v_tangent;\n");
+                s.push_str("#define VARYING_TANGENT\n");
+            }
+            s
         });
 
         res = res.replace("% INCLUDES_MORPH_VARS %", &{
@@ -100,12 +101,7 @@ impl MeshVertexShaderKey {
                     s.push_str(&match target {
                         MorphTarget::Position{loc, ..}  => format!("layout(location={loc}) in vec3 a_morph_target_position_{loc};\n"),
                         MorphTarget::Normal{loc, ..} => format!("layout(location={loc}) in vec3 a_morph_target_normal_{loc};\n"),
-                        MorphTarget::Tangent{loc, ..} => {
-                            if !self.attribute_tangents {
-                                bail!("morph tangents but none on mesh!");
-                            }
-                            format!("layout(location={loc}) in vec3 a_morph_target_tangent_{loc};\n")
-                        }
+                        MorphTarget::Tangent{loc, ..} => format!("layout(location={loc}) in vec3 a_morph_target_tangent_{loc};\n")
                     });
                 }
 
@@ -186,44 +182,47 @@ impl MeshVertexShaderKey {
                     s.push_str(&format!("layout(location={loc}) in vec2 a_tex_coord_{index};\n"));
                 }
             }
+
+            if self.normal_texture_uv_index.is_some() {
+                s.push_str(r#"
+                    out vec2 v_normal_uv;
+                "#);
+            }
+
+            if self.metallic_roughness_texture_uv_index.is_some() {
+                s.push_str(r#"
+                    out vec2 v_metallic_roughness_uv;
+                "#);
+            }
+            if self.base_color_texture_uv_index.is_some() {
+                s.push_str(r#"
+                    out vec2 v_base_color_uv;
+                "#);
+            }
+            if self.emissive_texture_uv_index.is_some() {
+                s.push_str(r#"
+                    out vec2 v_emissive_uv;
+                "#);
+            }
             
             s
         });
 
+        res = res.replace("% INCLUDES_ASSIGN_TEXTURE_VARS %", &{
+            let mut s = "".to_string();
 
-        res = res.replace("% INCLUDES_MATERIAL_VARS %", &{
-            let mut s = "".to_string();
-            if let Some(fragment_key) = &self.fragment_key {
-                match fragment_key {
-                    MeshFragmentShaderKey::Pbr(pbr) => {
-                        if pbr.metallic_roughness_texture_uv_index.is_some() {
-                            s.push_str(r#"
-                                out vec2 v_metallic_roughness_uv;
-                            "#);
-                        }
-                        if pbr.base_color_texture_uv_index.is_some() {
-                            s.push_str(r#"
-                                out vec2 v_base_color_uv;
-                            "#);
-                        }
-                    }
-                }
+            if let Some(index) = self.normal_texture_uv_index {
+                s.push_str(&format!("v_normal_uv = a_tex_coord_{index};\n"));
             }
-            s
-        });
-        res = res.replace("% INCLUDES_ASSIGN_MATERIAL_VARS %", &{
-            let mut s = "".to_string();
-            if let Some(fragment_key) = &self.fragment_key {
-                match fragment_key {
-                    MeshFragmentShaderKey::Pbr(pbr) => {
-                        if let Some(index) = pbr.metallic_roughness_texture_uv_index {
-                            s.push_str(&format!("v_metallic_roughness_uv = a_tex_coord_{index};\n"));
-                        }
-                        if let Some(index) = pbr.base_color_texture_uv_index {
-                            s.push_str(&format!("v_base_color_uv = a_tex_coord_{index};\n"));
-                        }
-                    }
-                }
+
+            if let Some(index) = self.metallic_roughness_texture_uv_index {
+                s.push_str(&format!("v_metallic_roughness_uv = a_tex_coord_{index};\n"));
+            }
+            if let Some(index) = self.base_color_texture_uv_index {
+                s.push_str(&format!("v_base_color_uv = a_tex_coord_{index};\n"));
+            }
+            if let Some(index) = self.emissive_texture_uv_index {
+                s.push_str(&format!("v_emissive_uv = a_tex_coord_{index};\n"));
             }
 
             s

@@ -1,76 +1,51 @@
+use gltf::material::AlphaMode as GltfAlphaMode;
+
 use crate::prelude::*;
-use crate::renderer::material::{Material, PbrMaterial, TextureInfo};
-use super::component::GltfPrimitive;
+use crate::renderer::material::{MaterialUniforms, PbrMaterialUniforms, TextureInfo};
 use super::populate::GltfPopulateContext;
 use super::loader::GltfResource;
 
 impl AwsmRenderer {
-    pub(super) fn gltf_make_material(&mut self, world: &World, res: &GltfResource, ctx: &mut GltfPopulateContext, gltf_material: gltf::Material) -> Result<Material> {
-
-        if gltf_material.normal_texture().is_some() {
-            log::warn!("TODO - material normal texture");
-        }
-        if gltf_material.emissive_texture().is_some() {
-            log::warn!("TODO - emissive texture texture");
-        }
-
+    pub(super) fn gltf_set_material_texture_uniforms(&mut self, world: &World, res: &GltfResource, ctx: &mut GltfPopulateContext, uniforms: &mut PbrMaterialUniforms, gltf_material: &gltf::Material) -> Result<()> {
         let gltf_metallic_roughness = gltf_material.pbr_metallic_roughness();
 
-        let metallic_roughness = PbrMetallicRoughness {
-            base_color_factor: gltf_metallic_roughness.base_color_factor().into(),
-            metallic_factor: gltf_metallic_roughness.metallic_factor(),
-            roughness_factor: gltf_metallic_roughness.roughness_factor(),
-            base_color_texture: match gltf_metallic_roughness.base_color_texture() {
-                None => None,
-                Some(info) => {
-                    Some(TextureInfo {
-                        id: self.gltf_get_texture(res, ctx, &info.texture())?,
-                        uv_index: info.tex_coord()
-                    })
-                }
-            },
-            metallic_roughness_texture: match gltf_metallic_roughness.metallic_roughness_texture() {
-                None => None,
-                Some(info) => {
-                    Some(TextureInfo {
-                        id: self.gltf_get_texture(res, ctx, &info.texture())?,
-                        uv_index: info.tex_coord()
-                    })
-                }
-            },
-        };
+        uniforms.alpha_mode = Some(match gltf_material.alpha_mode() {
+            GltfAlphaMode::Opaque => AlphaMode::Opaque,
+            GltfAlphaMode::Blend => AlphaMode::Blend,
+            GltfAlphaMode::Mask => AlphaMode::Mask { cutoff: gltf_material.alpha_cutoff().unwrap_or(0.5) } // 0.5 is default defined in spec
+        });
 
+        uniforms.base_color_factor = gltf_metallic_roughness.base_color_factor().into();
+        uniforms.metallic_factor = gltf_metallic_roughness.metallic_factor().into();
+        uniforms.roughness_factor = gltf_metallic_roughness.roughness_factor().into();
 
-        let material = PbrMaterial {  
-            metallic_roughness
-        };
+        if let Some(info) = gltf_metallic_roughness.base_color_texture() {
+            uniforms.base_color_texture = Some(TextureInfo {
+                    id: self.gltf_get_texture(res, ctx, &info.texture())?,
+                    uv_index: info.tex_coord()
+            });
+        }
+        if let Some(info) = gltf_metallic_roughness.metallic_roughness_texture() {
+            uniforms.metallic_roughness_texture = Some(TextureInfo {
+                    id: self.gltf_get_texture(res, ctx, &info.texture())?,
+                    uv_index: info.tex_coord()
+            });
+        }
 
-        Ok(Material::Pbr(material))
+        if let Some(info) = gltf_material.normal_texture() {
+            uniforms.normal_texture = Some(TextureInfo {
+                    id: self.gltf_get_texture(res, ctx, &info.texture())?,
+                    uv_index: info.tex_coord()
+            });
+        }
+
+        if let Some(info) = gltf_material.emissive_texture() {
+            uniforms.emissive_texture = Some(TextureInfo {
+                    id: self.gltf_get_texture(res, ctx, &info.texture())?,
+                    uv_index: info.tex_coord()
+            });
+        }
+
+        Ok(())
     }
 }
-
-
-    //pub base_color_factor: PbrBaseColorFactor,
-
-    //pub base_color_texture: Option<texture::Info>,
-
-    //pub metallic_factor: StrengthFactor,
-
-    //pub roughness_factor: StrengthFactor,
-
-    ///// The metallic-roughness texture.
-    /////
-    ///// This texture has two components:
-    /////
-    ///// The metalness values are sampled from the B channel.
-    ///// The roughness values are sampled from the G channel.
-    ///// These values are linear. If other channels are present (R or A),
-    ///// they are ignored for metallic-roughness calculations.
-    //#[serde(rename = "metallicRoughnessTexture")]
-    //#[serde(skip_serializing_if = "Option::is_none")]
-    //pub metallic_roughness_texture: Option<texture::Info>,
-
-    ///// Extension specific data.
-    //#[serde(default, skip_serializing_if = "Option::is_none")]
-    //pub extensions: Option<extensions::material::PbrMetallicRoughness>,
-

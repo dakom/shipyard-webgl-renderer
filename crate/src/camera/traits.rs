@@ -3,10 +3,7 @@ use nalgebra::{Isometry3, Matrix4, Point2, Point3, Point4, Vector2, Vector3};
 use std::borrow::Cow;
 
 pub trait CameraBase {
-    fn position(&self) -> Vector3<f64> {
-        let invView = self.projection_view_inverse();
-        Vector3::new(invView.m41, invView.m42, invView.m43)
-    }
+    fn position(&self) -> Vector3<f64>;
 
     fn projection_view_inverse(&self) -> &Matrix4<f64>; 
 

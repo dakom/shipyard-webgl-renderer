@@ -51,6 +51,7 @@ impl AwsmRenderer {
                     // do nothing... webgl2 supports mipmapping non-power-of-2
                 }
 
+
                 self.gl.assign_texture(
                     id, 
                     TextureTarget::Texture2d, 
@@ -64,7 +65,7 @@ impl AwsmRenderer {
 
                         //gl.pixel_storei(WebGlSpecific::UnpackFlipY as u32, 1);
                         gl.pixel_storei(WebGlSpecific::UnpackColorspaceConversion as u32, 0);
-                   
+                  
 
                         let min_filter = match sampler.min_filter() {
                             Some(min_filter) => {
@@ -107,6 +108,7 @@ impl AwsmRenderer {
 
                         gl.awsm_texture_set_wrap(TextureTarget::Texture2d, TextureWrapTarget::S, wrap_s);
                         gl.awsm_texture_set_wrap(TextureTarget::Texture2d, TextureWrapTarget::T, wrap_t);
+
 
                     }), 
                     src 

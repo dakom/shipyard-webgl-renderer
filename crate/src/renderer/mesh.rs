@@ -1,6 +1,6 @@
 use awsm_web::webgl::{WebGl2Renderer, BeginMode, DataType};
 use crate::prelude::*;
-use super::{cleanup::DestroyWithGl, shaders::{MeshVertexShaderKey, MeshFragmentShaderKey}};
+use super::{cleanup::DestroyWithGl, shaders::ShaderKey};
 use nalgebra_glm::Mat4;
 
 
@@ -8,8 +8,7 @@ use nalgebra_glm::Mat4;
 pub struct Mesh {
     pub buffer_ids: Vec<Id>,
     pub vao_id: Id,
-    pub vertex_shader_key: MeshVertexShaderKey,
-    pub fragment_shader_key: MeshFragmentShaderKey,
+    pub shader_key: ShaderKey,
     pub program_id: Id,
     pub draw_strategy: DrawStrategy,
     pub skin_joints: Vec<EntityId>

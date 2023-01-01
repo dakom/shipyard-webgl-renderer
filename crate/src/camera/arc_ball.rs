@@ -256,6 +256,13 @@ impl ArcBall {
 
 impl CameraBase for ArcBall {
 
+    fn position(&self) -> Vector3<f64> {
+        // not sure which of these is more correct tbh...
+        let inv_view = self.projection_view_inverse();
+        let position:Isometry3<f64> = nalgebra::convert_unchecked(*inv_view);
+        position.translation.vector
+        //self.eye().coords
+    }
     fn projection_view_inverse(&self) -> &Matrix4<f64> {
         &self.inverse_proj_view
     }

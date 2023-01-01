@@ -25,7 +25,6 @@ void set_material_base_color(inout Material material) {
         base_color *= v_vertex_color;
     #endif
 
-
     material.base_color = base_color;
 
     #if ALPHAMODE == ALPHAMODE_OPAQUE

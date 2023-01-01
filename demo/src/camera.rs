@@ -78,6 +78,9 @@ impl GltfId {
 
     pub fn arc_ball_camera_eye(&self) -> Point3<f64> {
         match self {
+            Self::AlphaBlendMode => {
+                Point3::new(0.0, 1.0, 8.0)
+            },
             Self::SimpleSparseAccessor => {
                 Point3::new(0.0, 0.0, 30.0)
             },
@@ -108,6 +111,9 @@ impl GltfId {
 
     pub fn arc_ball_camera_look_at(&self) -> Point3<f64> {
         match self {
+            Self::AlphaBlendMode => {
+                Point3::new(0.0, 1.0, 0.0)
+            },
             _ => Point3::new(0.0, 0.0, 0.0)
         }
     }

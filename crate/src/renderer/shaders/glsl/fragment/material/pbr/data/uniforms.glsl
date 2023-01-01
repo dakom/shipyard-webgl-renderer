@@ -89,7 +89,7 @@ uniform float u_env_intensity;
 
 // Normals
 uniform sampler2D u_normal_sampler;
-uniform float u_normal_scale;
+uniform float u_normal_texture_scale;
 uniform mat3 u_normal_uv_transform;
 
 // Emissive

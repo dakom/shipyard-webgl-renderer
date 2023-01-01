@@ -127,7 +127,7 @@ impl AwsmRenderer {
 
         // free all meshes
         {
-            world.run(|mut meshes: ViewMut<Mesh>, mut materials: ViewMut<Material>| {
+            world.run(|mut meshes: ViewMut<Mesh>, mut materials: ViewMut<MaterialUniforms>| {
                 for mesh in (&mut meshes).iter() {
                     mesh.destroy(&mut self.gl);
                 }

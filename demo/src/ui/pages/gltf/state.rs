@@ -4,6 +4,7 @@ use dominator_helpers::futures::AsyncLoader;
 
 pub struct GltfPage {
     pub world: Mutable<Option<Rc<RefCell<World>>>>,
+    pub gltf_set: Mutable<Option<&'static str>>,
     pub gltf: Mutable<Option<GltfId>>,
     pub camera: Mutable<Option<CameraKind>>,
     pub loader: AsyncLoader,
@@ -16,6 +17,7 @@ impl GltfPage {
     pub fn new(id: Option<GltfId>) -> Rc<Self> {
         Rc::new(Self {
             world: Mutable::new(None),
+            gltf_set: Mutable::new(id.map(|id| id.find_set_label())),
             gltf: Mutable::new(id),
             camera: Mutable::new(None),
             _renderer: RefCell::new(None),

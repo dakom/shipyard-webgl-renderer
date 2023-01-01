@@ -5,3 +5,4 @@ pub struct TextureInfo {
     pub id: Id,
     pub uv_index: u32
 }
+

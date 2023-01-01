@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use nalgebra::Matrix4;
+use nalgebra::{Vector3, Matrix4, Isometry3};
 use crate::camera::traits::*;
 
 pub struct ScreenStatic {
@@ -68,6 +68,14 @@ impl ScreenStatic {
 }
 
 impl CameraBase for ScreenStatic {
+    fn position(&self) -> Vector3<f64> {
+        //let inv_view = self.projection_view_inverse();
+        //let position:Isometry3<f64> = nalgebra::convert_unchecked(*inv_view);
+        //position.translation.vector
+        // eh, whatever...
+        Vector3::new(self.x, self.y, -self.near_plane)
+    }
+
     fn view(&self) -> &nalgebra::Matrix4<f64> {
         &self.view
     }

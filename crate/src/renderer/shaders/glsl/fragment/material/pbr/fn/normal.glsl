@@ -51,11 +51,11 @@ NormalInfo get_normal_info()
     // Compute normals:
     info.geom_normal = ng;
 
-    #ifdef HAS_NORMAL_MAP
-        info.tex = texture(u_NormalSampler, UV).rgb * 2.0 - vec3(1.0);
-        info.tex *= vec3(u_NormalScale, u_NormalScale, 1.0);
-        info.tex = normalize(info.ntex);
-        info.normal = normalize(mat3(t, b, ng) * info.ntex);
+    #ifdef NORMAL_UV_MAP
+        info.tex = texture(u_normal_sampler, uv).rgb * 2.0 - vec3(1.0);
+        info.tex *= vec3(u_normal_texture_scale, u_normal_texture_scale, 1.0);
+        info.tex = normalize(info.tex);
+        info.normal = normalize(mat3(t, b, ng) * info.tex);
     #else
         info.normal = ng;
     #endif

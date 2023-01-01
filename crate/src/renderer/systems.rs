@@ -4,7 +4,7 @@ use awsm_web::webgl::{
     BlendFactor,
     BeginMode, 
     BufferTarget, 
-    UniformType,
+    UniformType, TextureTarget,
 };
 use super::draw_buffers::DrawBuffers;
 use super::cleanup::DestroyWithGl;
@@ -23,7 +23,7 @@ pub fn render_sys(
     lights:View<Light>, 
     mesh_morph_weights: View<MeshMorphWeights>, 
     mesh_skin_joints: View<MeshSkinJoint>, 
-    materials:View<Material>, 
+    material_uniforms:View<MaterialUniforms>, 
     material_forwards:View<MaterialForward>, 
     material_deferreds:View<MaterialDeferred>, 
     world_transforms: View<WorldTransform>,
@@ -52,9 +52,9 @@ pub fn render_sys(
             gl.toggle(GlToggle::Blend, true);
             gl.set_blend_func(BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
 
-            for (entity, (mesh, material, world_transform,_))
+            for (entity, (mesh, material_uniform, world_transform,_))
                 in 
-                (&meshes, &materials, &world_transforms, &material_forwards)
+                (&meshes, &material_uniforms, &world_transforms, &material_forwards)
                 .iter()
                 .with_id()
                 {
@@ -80,22 +80,31 @@ pub fn render_sys(
                         }
                     }
 
-                    match material {
-                        Material::Pbr(pbr) => {
-                            gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.metallic_roughness.base_color_factor.as_slice());
-                            let metallic_roughness:[f32;2] = [pbr.metallic_roughness.metallic_factor, pbr.metallic_roughness.roughness_factor];
+
+                    match material_uniform {
+                        MaterialUniforms::Pbr(pbr) => {
+                            if let Some(alpha_mode) = pbr.alpha_mode {
+                                if let AlphaMode::Mask { cutoff } = alpha_mode {
+                                    gl.upload_uniform_fval_name("u_alpha_cutoff", cutoff);
+                                }
+                            }
+                            gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.base_color_factor.as_slice());
+                            let metallic_roughness:[f32;2] = [pbr.metallic_factor, pbr.roughness_factor];
 
                             gl.upload_uniform_fvec_name("u_metallic_roughness_factors", UniformType::Vector2, &metallic_roughness);
 
-                            if let Some(tex) = &pbr.metallic_roughness.metallic_roughness_texture {
-
-                                gl.activate_texture_for_sampler_name(tex.id, "u_metallic_roughness_sampler");
+                            if let Some(tex) = &pbr.base_color_texture {
+                                gl.activate_texture_sampler_name(tex.id, "u_base_color_sampler");
                             }
-                            if let Some(tex) = &pbr.metallic_roughness.base_color_texture {
-
-                                //gl.assign_texture_slot_to_uniform_name(mesh.program_id, "u_base_color_sampler", 0)?;
-                                //gl.activate_texture_sampler_index(tex.id, 0)?;
-                                gl.activate_texture_for_sampler_name(tex.id, "u_base_color_sampler");
+                            if let Some(tex) = &pbr.metallic_roughness_texture {
+                                gl.activate_texture_sampler_name(tex.id, "u_metallic_roughness_sampler");
+                            }
+                            if let Some(tex) = &pbr.emissive_texture {
+                                gl.activate_texture_sampler_name(tex.id, "u_emissive_sampler");
+                            }
+                            if let Some(tex) = &pbr.normal_texture {
+                                gl.activate_texture_sampler_name(tex.id, "u_normal_sampler");
+                                gl.upload_uniform_fval_name("u_normal_texture_scale", pbr.normal_texture_scale.unwrap_or(1.0));
                             }
                         }
                     }

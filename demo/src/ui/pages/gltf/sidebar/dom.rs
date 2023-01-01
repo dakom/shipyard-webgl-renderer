@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::{prelude::*, route::Route, ui::primitives::{checkbox::Checkbox, dropdown::{Dropdown, DropdownOption}}};
+use crate::{prelude::*, route::Route, ui::primitives::{checkbox::Checkbox, dropdown::{Dropdown, DropdownOption}}, gltf::id::GLTF_SETS};
 use crate::camera::CameraKind;
 use dominator::{svg, text};
 
@@ -29,7 +29,10 @@ impl Sidebar {
 
                                 html!("div", { 
                                     .class(["flex", "flex-col", "gap-8"])
-                                    .child(render_dropdown_group("model", state.clone().render_gltf_selector()))
+                                    .child(render_dropdown_group("model", state.clone().render_set_selector()))
+                                    .child_signal(state.page.gltf_set.signal().map(clone!(state => move |data| {
+                                        data.map(clone!(state => move |set_name| render_dropdown_group("model", state.clone().render_gltf_selector(set_name))))
+                                    })))
                                     .child_signal(sig.map(clone!(state => move |data| {
                                         data.map(clone!(state => move |(gltf_id, camera)| render_dropdown_group("camera", state.clone().render_camera_selector(gltf_id, camera))))
                                     })))
@@ -46,12 +49,27 @@ impl Sidebar {
         })
     }
 
-    fn render_gltf_selector(self: Rc<Self>) -> Dom {
+    fn render_set_selector(self: Rc<Self>) -> Dom {
         let state = self;
 
-        Dropdown::new("Choose a Gltf".to_string(), state.page.gltf.get(), GltfId::list()
+        Dropdown::new("Choose a Set".to_string(), state.page.gltf.get().map(|x| x.find_set_label()), GLTF_SETS.keys()
             .into_iter()
-            .map(|x| DropdownOption::new(x, x.label().to_string()))
+            .map(|x| DropdownOption::new(*x, x.to_string()))
+            .collect()
+        ).render(clone!(state => move |opt| {
+            let gltf_id = *GLTF_SETS.get(opt.id).unwrap().iter().next().unwrap();
+            Route::Gltf(Some(gltf_id)).go_to_url();
+        }))
+    }
+
+    fn render_gltf_selector(self: Rc<Self>, set_name: &'static str) -> Dom {
+        let state = self;
+
+        Dropdown::new("Choose a Gltf".to_string(), state.page.gltf.get(), GLTF_SETS.get(set_name)
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| DropdownOption::new(*x, x.label().to_string()))
             .collect()
         ).render(clone!(state => move |opt| {
             match state.page.gltf.get_cloned() {
