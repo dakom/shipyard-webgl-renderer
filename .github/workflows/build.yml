@@ -19,9 +19,7 @@ jobs:
           ${{ runner.os }}-lint-
 
     - name: add root workspace to path
-      uses: dakom/actions-path@master
-      with:
-        path: ${{github.workspace}}
+      run: echo "${{github.workspace}}" >> $GITHUB_PATH
 
     - name: install node
       uses: actions/setup-node@v3
