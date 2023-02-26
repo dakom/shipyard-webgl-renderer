@@ -49,15 +49,72 @@ pub struct SkinTarget {
     pub joint_loc: u32,
 }
 
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+pub struct VertexColor {
+    pub loc: u32,
+    pub size: VertexColorSize
+}
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+pub enum VertexColorSize {
+    Vec3,
+    Vec4
+}
+
 impl ShaderKey {
     fn into_vertex_code(&self) -> Result<String> {
         let mut res = ENTRY_MESH
             .replace("% INCLUDES_COMMON_MATH %", COMMON_MATH)
             .replace("% INCLUDES_COMMON_CAMERA %", COMMON_CAMERA);
 
-        if let Some(vertex_colors) = self.vertex_colors.as_ref() {
-            log::warn!("TODO: vertex colors for {:?}", vertex_colors);
-        }
+        res = res.replace("% INCLUDES_VERTEX_COLOR_VARS %", &{
+            let mut s = "".to_string();
+            if let Some(vertex_colors) = self.vertex_colors.as_ref() {
+                s.push_str("out vec4 v_vertex_color;\n");
+
+                if vertex_colors.len() > 1 {
+                    s.push_str("uniform int vertex_color_index;\n");
+                }
+
+                for vertex_color in vertex_colors.iter() {
+                    let loc = vertex_color.loc;
+                    match vertex_color.size {
+                        VertexColorSize::Vec3 => {
+                            s.push_str(&format!("layout(location={loc}) in vec3 a_vertex_color_{loc};\n"));
+                        },
+                        VertexColorSize::Vec4 => {
+                            s.push_str(&format!("layout(location={loc}) in vec4 a_vertex_color_{loc};\n"));
+                        }
+                    }
+                }
+            }
+            s
+        });
+
+        res = res.replace("% INCLUDES_VERTEX_COLOR_FN %", &{
+            let mut s = "".to_string();
+            if let Some(vertex_colors) = self.vertex_colors.as_ref() {
+                for (index, vertex_color) in vertex_colors.iter().enumerate() {
+                    let loc = vertex_color.loc;
+                    if vertex_colors.len() > 1 {
+                        s.push_str(&format!("if(vertex_color_index == {index}) {{\n"));
+                    }
+
+                    match vertex_color.size {
+                        VertexColorSize::Vec3 => {
+                            s.push_str(&format!("v_vertex_color = vec4(a_vertex_color_{loc}, 1.0);\n"));
+                        },
+                        VertexColorSize::Vec4 => {
+                            s.push_str(&format!("v_vertex_color = a_vertex_color_{loc};\n"));
+                        }
+                    }
+                    if vertex_colors.len() > 1 {
+                        s.push_str("}\n");
+                    }
+                }
+            }
+
+            s
+        });
 
         res = res.replace("% INCLUDES_POSITION_VARS %", &{
             let mut s = "".to_string();

@@ -19,7 +19,6 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
     h.insert("Todo", vec![
         GltfId::TextureSettings,
         GltfId::TextureLinearInterpolation,
-        GltfId::VertexColor,
         GltfId::MetalRoughSpheresTextureless,
         GltfId::MorphStressTest,
         GltfId::MultiUv,
@@ -43,7 +42,7 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
         GltfId::TextureCoordinate,
         //GltfId::TextureLinearInterpolation,
         //GltfId::TextureSettings,
-        //GltfId::VertexColor,
+        GltfId::VertexColor,
     ]);
 
     h.insert("Minimal", vec![
@@ -203,6 +202,7 @@ impl GltfId {
             Self::TextureLinearInterpolation => "Linear texture interpolation",
             Self::TextureSettings => "Texture settings",
             Self::VertexColor => "Vertex colors",
+
             // Minimal
             Self::TriangleWithoutIndices => "Triangle without indices",
             Self::Triangle => "Triangle",

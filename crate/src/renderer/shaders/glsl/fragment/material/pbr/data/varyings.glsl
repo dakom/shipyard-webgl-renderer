@@ -9,9 +9,8 @@ in vec3 v_position;
     #endif
 #endif
 
-
 #ifdef VERTEX_COLORS
-    in vec3 v_vertex_color;
+    in vec4 v_vertex_color;
 #endif
 
 // TEXTURES

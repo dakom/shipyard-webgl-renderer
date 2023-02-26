@@ -5,8 +5,8 @@
     "scripts": {
         "serve:dev": "npm-run-all --parallel localmedia:serve trunk:serve:dev",
         "localmedia:serve": "cd media && http-server -g -b --cors -p 9000",
-        "trunk:serve:dev": "cross-env RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve --features dev",
-        "trunk:serve:release": "cross-env RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve --release",
+        "trunk:serve:dev": "cross-env RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve --features dev --watch . --watch ../crate",
+        "trunk:serve:release": "cross-env RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve --release --watch . --watch ../crate",
         "trunk:build": "cross-env RUSTFLAGS=--cfg=web_sys_unstable_apis trunk build --release",
         "github:deploy:patch": "node ./github-deploy-patch.js"
     },

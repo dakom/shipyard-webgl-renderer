@@ -8,6 +8,8 @@ precision mediump float;
 % INCLUDES_NORMAL_VARS %
 % INCLUDES_TANGENT_VARS %
 
+% INCLUDES_VERTEX_COLOR_VARS %
+
 % INCLUDES_SKIN_VARS %
 
 % INCLUDES_MORPH_VARS %
@@ -15,6 +17,7 @@ precision mediump float;
 % INCLUDES_TEXTURE_VARS %
 
 uniform mat4 u_model;
+
 
 void main() {
     vec3 position = a_position;
@@ -26,6 +29,8 @@ void main() {
     #ifdef VARYING_TANGENT 
         vec3 tangent = a_tangent;
     #endif
+
+    % INCLUDES_VERTEX_COLOR_FN %
 
     % INCLUDES_SKIN_FN %
 

@@ -145,7 +145,6 @@ impl GltfId {
             }
         };
 
-        log::info!("{:#?} from bounds {:#?}", eye, bounds);
         eye
     }
 

@@ -50,7 +50,7 @@ pub struct ShaderKey {
     pub n_morph_target_weights: u8,
     pub n_skin_joints: u8,
     pub tex_coords: Option<Vec<u32>>,
-    pub vertex_colors: Option<Vec<u32>>,
+    pub vertex_colors: Option<Vec<VertexColor>>,
     pub normal_texture_uv_index: Option<u32>,
     pub metallic_roughness_texture_uv_index: Option<u32>,
     pub base_color_texture_uv_index: Option<u32>,

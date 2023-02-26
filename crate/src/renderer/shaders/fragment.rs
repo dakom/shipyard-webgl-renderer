@@ -110,6 +110,10 @@ impl ShaderKey {
             res.push_str("#define EMISSIVE_UV_MAP\n");
         }
 
+        if self.vertex_colors.is_some() {
+            res.push_str("#define VERTEX_COLORS\n");
+        }
+
         if max_lights > 0 {
             res.push_str(&format!("#define MAX_LIGHTS {}\n", max_lights));
         }
