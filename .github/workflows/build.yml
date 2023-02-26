@@ -18,10 +18,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-lint-
 
-    # - name: add root workspace to path
-    #   uses: dakom/actions-path@master
-    #   with:
-    #     path: ${{github.workspace}}
+    - name: add root workspace to path
+      uses: dakom/actions-path@master
+      with:
+        path: ${{github.workspace}}
 
     - name: install node
       uses: actions/setup-node@v3
@@ -37,7 +37,6 @@ jobs:
 
     - name: install trunk
       run: wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
-
 
     - name: build for release 
       run: yarn trunk:build 
