@@ -207,6 +207,8 @@ impl AwsmRenderer {
 
             let element_buffer_id = match primitive.indices() {
                 Some(indices) => {
+                    // log::warn!("INDICES");
+                    // log::warn!("{:#?}", gltf_accessor_to_scalars(res, &indices)?.len());
                     let buffer_id = self.upload_gltf_accessor_buffer(res, &indices, Some(BufferTarget::ElementArrayBuffer))?;
                     buffer_ids.push(buffer_id);
                     Some(buffer_id)
@@ -286,6 +288,8 @@ impl AwsmRenderer {
                 }
             };
 
+            log::info!("{:#?}", mesh);
+
 
             DataToAdd {
                 mesh,
@@ -294,6 +298,7 @@ impl AwsmRenderer {
                 material_forward: Some(MaterialForward{}), 
                 material_deferred: None, 
             }
+
 
         };
 

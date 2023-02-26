@@ -6,6 +6,7 @@ use awsm_web::webgl::{
     BufferTarget, 
     UniformType, TextureTarget,
 };
+use nalgebra::Matrix4;
 use super::draw_buffers::DrawBuffers;
 use super::cleanup::DestroyWithGl;
 use crate::{
@@ -58,6 +59,8 @@ pub fn render_sys(
                 .iter()
                 .with_id()
                 {
+                    // let mut mat = WorldTransform::new(Matrix4::identity());
+                    // mat.write_to_vf32(&mut world_transform_buf);
                     world_transform.write_to_vf32(&mut world_transform_buf);
                     gl.activate_program(mesh.program_id)?;
                     gl.activate_vertex_array(mesh.vao_id)?;
@@ -112,11 +115,11 @@ pub fn render_sys(
 
                     match mesh.draw_strategy {
                         DrawStrategy::Arrays { mode, first, count } => {
-                            //log::info!("{:?} {} {}", mode, first, count);
+                            //log::info!("drawing arrays: {:?} {} {}", mode, first, count);
                             gl.draw_arrays(mode, first, count);
                         },
                         DrawStrategy::Elements { mode, count, data_type, offset} => {
-                            //log::info!("{:?} {} {:?}, {}", mode, count, data_type, offset);
+                            //log::info!("drawing elements: {:?} {} {:?}, {}", mode, count, data_type, offset);
                             gl.draw_elements(mode, count, data_type, offset);
                         }
                     }

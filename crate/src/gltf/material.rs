@@ -20,14 +20,12 @@ impl AwsmRenderer {
         uniforms.roughness_factor = gltf_metallic_roughness.roughness_factor().into();
 
         if let Some(info) = gltf_metallic_roughness.base_color_texture() {
-            log::info!("has base color texture");
             uniforms.base_color_texture = Some(TextureInfo {
                     id: self.gltf_get_texture(res, ctx, &info.texture())?,
                     uv_index: info.tex_coord()
             });
         }
         if let Some(info) = gltf_metallic_roughness.metallic_roughness_texture() {
-            log::info!("has metallic roughness texture");
             uniforms.metallic_roughness_texture = Some(TextureInfo {
                     id: self.gltf_get_texture(res, ctx, &info.texture())?,
                     uv_index: info.tex_coord()
@@ -47,6 +45,7 @@ impl AwsmRenderer {
                     uv_index: info.tex_coord()
             });
         }
+
 
         Ok(())
     }

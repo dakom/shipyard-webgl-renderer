@@ -31,6 +31,10 @@ void main() {
 
     fragment_color = final_color(material, light_output);
 
+    //TODO: get rid of this
+    //fragment_color = vec4(1.0, 1.0, 1.0, 1.0); 
+
+
     
     #ifdef DEBUG_NORMALS
         fragment_color = vec4(normal_info.normal, 1.0); 

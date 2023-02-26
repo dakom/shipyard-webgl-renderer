@@ -10,24 +10,29 @@ impl GltfPage {
 
         state.loader.load(clone!(state => async move {
             let renderer = state.renderer_cell();
-            if let Err(err) = switch_gltf(renderer.clone(), state.world_cell(), id).await {
-                log::error!("{}", err);
+            match switch_gltf(renderer.clone(), state.world_cell(), id).await {
+                Err(err) => { 
+                    log::error!("{}", err);
+                }
+                Ok(bounds) => {
+                    let (width, height) = {
+                        let renderer = renderer.borrow();
+                        let canvas = &renderer.canvas;
+                        (canvas.width(), canvas.height())
+                    };
+                    let camera = LocalCameraKind::new_default(
+                        Some(state.world_cell()),
+                        &mut *renderer.borrow_mut(),
+                        width as f64,
+                        height as f64,
+                        id
+                    );
+
+                    state.camera.set(Some(camera));
+                }
             }
            
-            let (width, height) = {
-                let renderer = renderer.borrow();
-                let canvas = &renderer.canvas;
-                (canvas.width(), canvas.height())
-            };
 
-            let camera = LocalCameraKind::new_default(
-                &mut *renderer.borrow_mut(),
-                width as f64,
-                height as f64,
-                id
-            );
-
-            state.camera.set(Some(camera));
         }));
     }
 

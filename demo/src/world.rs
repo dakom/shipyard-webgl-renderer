@@ -1,6 +1,6 @@
 use web_sys::{HtmlCanvasElement, window};
 use std::{ops::{Deref, DerefMut}, sync::atomic::AtomicBool};
-use crate::prelude::*;
+use crate::{prelude::*, gltf::component::GltfResourceWrapper};
 use awsm_web::{webgl::{WebGlContextOptions, ResizeStrategy}, tick::{Raf, MainLoop, MainLoopOptions}, dom::resize::ResizeObserver};
 use shipyard_scenegraph::prelude::*;
 use awsm_renderer::{
@@ -22,8 +22,8 @@ use awsm_renderer::{
     },
 };
 
-const TRANSFORMS:&'static str = "TRANSFORMS";
-const ANIMATION_UPDATES:&'static str = "ANIMATION_UPDATES";
+pub const TRANSFORMS:&'static str = "TRANSFORMS";
+pub const ANIMATION_UPDATES:&'static str = "ANIMATION_UPDATES";
 
 pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>, Rc<RefCell<AwsmRenderer>>)> {
     let world = Rc::new(RefCell::new(World::new()));
@@ -141,7 +141,7 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
     resize.observe(&canvas);
 
     world.borrow().add_unique_non_send_sync(ResizeWrapper(resize));
-
+    world.borrow().add_unique_non_send_sync(GltfResourceWrapper(None));
     Ok((world, renderer))
 }
 

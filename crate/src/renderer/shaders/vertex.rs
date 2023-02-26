@@ -227,7 +227,6 @@ impl ShaderKey {
 
             s
         });
-        //log::info!("{}", res);
         Ok(res)
     }
 }

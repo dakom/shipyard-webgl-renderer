@@ -8,43 +8,41 @@ jobs:
     - name: checkout repo
       uses: actions/checkout@v1
 
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-lint-${{ hashFiles('Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-lint-
+
     - name: install node
       uses: actions/setup-node@v3
       with: 
         node-version: latest
 
-    - name: install npm deps
-      run: npm install
+    - name: install yarn deps
+      run: yarn install
       working-directory: ./demo
 
-    #- name: install rust nightly
-      #run: rustup toolchain install nightly
+    - name: install trunk
+      run: cargo install --locked trunk
 
-    #- name: make nightly the default
-      #run: rustup default nightly
-
-    - name: add rust target
-      run: rustup target add wasm32-unknown-unknown
+    # - name: add rust target
+    #   run: rustup target add wasm32-unknown-unknown
 
     - name: build for release 
-      run: npm run build 
+      run: yarn trunk:build 
       working-directory: ./demo
 
     - name: patch the index files 
-      run: npm run prod-patch
+      run: yarn github:deploy:patch
       working-directory: ./demo
-
-    - run: mv ./demo/public/prod-index.html ./demo/public/index.html
-    - run: mv ./demo/public/prod-404.html ./demo/public/404.html
-
-    - name: create dist directory
-      run: mkdir ./dist
-
-    - name: copy example public to dist
-      run: cp -R ./demo/public/* ./dist
 
     - name: deploy to gh_pages
       uses: maxheld83/ghpages@master
       env:
-        BUILD_DIR: "dist/"
+        BUILD_DIR: "demo/dist/"
         GH_PAT: ${{ secrets.GH_PAT }}

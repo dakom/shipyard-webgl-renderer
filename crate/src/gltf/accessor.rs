@@ -280,6 +280,7 @@ pub fn gltf_accessor_data<'a, 'b>(res: &'a GltfResource, accessor: &'b accessor:
             // the sparse accessor is initialized  with zeroes
             // not sure if this also applies to non-sparse, but it makes sense that it would..
             // TODO - find a model that uses this
+            log::warn!("see todo here!");
             Cow::Owned(vec![0u8;len])
         }
     };

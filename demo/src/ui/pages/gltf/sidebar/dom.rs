@@ -101,8 +101,8 @@ impl Sidebar {
                 let width = width as f64;
                 let height = height as f64;
                 let camera = match opt.id {
-                    "Arc Ball" => CameraKind::new_arc_ball(renderer, width, height, gltf_id),
-                    "Screen Static" => CameraKind::new_screen_static(renderer, width, height, gltf_id),
+                    "Arc Ball" => CameraKind::new_arc_ball(state.page.world.get_cloned(),renderer, width, height, gltf_id),
+                    "Screen Static" => CameraKind::new_screen_static(state.page.world.get_cloned(), renderer, width, height, gltf_id),
                     _ => unimplemented!()
                 };
 

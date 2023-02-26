@@ -11,7 +11,6 @@ pub const DEFAULT_SCREEN_STATIC_NEAR_PLANE:f64 = -10_100.0;
 pub const DEFAULT_SCREEN_STATIC_FAR_PLANE:f64 = 10_100.0;
 pub const DEFAULT_MULTISAMPLE_RENDERER: bool = true;
 
-
 cfg_if::cfg_if! {
     if #[cfg(feature = "dev")] {
         // for github pages etc. where website isn't at root
@@ -21,8 +20,8 @@ cfg_if::cfg_if! {
                 init_gltf: Some(GltfId::MetalRoughSpheresTextureless),
                 //init_gltf: Some(GltfId::BoxVertexColors),
                 //init_gltf: Some(GltfId::Cube),
-                gltf_url: "/media/glTF-Sample-Models/2.0",
-                image_url: "/media/image",
+                gltf_url: "http://127.0.0.1:9000/glTF-Sample-Models/2.0",
+                image_url: "http://127.0.0.1:9000/image",
             }
         });
     } else {
