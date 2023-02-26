@@ -27,11 +27,12 @@ jobs:
       run: yarn install
       working-directory: ./demo
 
-    - name: install trunk
-      run: cargo install --locked trunk
+    - name: add rust target
+      run: rustup target add wasm32-unknown-unknown
 
-    # - name: add rust target
-    #   run: rustup target add wasm32-unknown-unknown
+    - name: install trunk
+      run: wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
+      working-directory: ./demo
 
     - name: build for release 
       run: yarn trunk:build 
