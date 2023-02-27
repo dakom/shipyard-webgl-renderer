@@ -24,9 +24,7 @@ pub fn render_sys(
     lights:View<Light>, 
     mesh_morph_weights: View<MeshMorphWeights>, 
     mesh_skin_joints: View<MeshSkinJoint>, 
-    material_uniforms:View<MaterialUniforms>, 
-    material_forwards:View<MaterialForward>, 
-    material_deferreds:View<MaterialDeferred>, 
+    material:View<Material>, 
     world_transforms: View<WorldTransform>,
 ) -> Result<()> {
     let renderer:&mut AwsmRenderer = &mut *renderer;
@@ -53,12 +51,14 @@ pub fn render_sys(
             gl.toggle(GlToggle::Blend, true);
             gl.set_blend_func(BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
 
-            for (entity, (mesh, material_uniform, world_transform,_))
+            for (entity, (mesh, material, world_transform,))
                 in 
-                (&meshes, &material_uniforms, &world_transforms, &material_forwards)
+                (&meshes, &material, &world_transforms)
                 .iter()
                 .with_id()
                 {
+
+
                     // let mut mat = WorldTransform::new(Matrix4::identity());
                     // mat.write_to_vf32(&mut world_transform_buf);
                     world_transform.write_to_vf32(&mut world_transform_buf);
@@ -84,14 +84,18 @@ pub fn render_sys(
                     }
 
 
-                    match material_uniform {
-                        MaterialUniforms::Pbr(pbr) => {
+                    match material {
+                        Material::Pbr(pbr) => {
+                            gl.toggle(GlToggle::CullFace, !pbr.double_sided);
+
                             if let Some(alpha_mode) = pbr.alpha_mode {
                                 if let AlphaMode::Mask { cutoff } = alpha_mode {
                                     gl.upload_uniform_fval_name("u_alpha_cutoff", cutoff);
                                 }
                             }
                             gl.upload_uniform_fvec_name("u_base_color_factor", UniformType::Vector4, &pbr.base_color_factor.as_slice());
+                            gl.upload_uniform_fvec_name("u_emissive_factor", UniformType::Vector3, &pbr.emissive_factor.as_slice());
+
                             let metallic_roughness:[f32;2] = [pbr.metallic_factor, pbr.roughness_factor];
 
                             gl.upload_uniform_fvec_name("u_metallic_roughness_factors", UniformType::Vector2, &metallic_roughness);

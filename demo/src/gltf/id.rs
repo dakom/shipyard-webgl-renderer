@@ -17,11 +17,8 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
     let mut h = HashMap::new();
 
     h.insert("Todo", vec![
-        GltfId::TextureSettings,
-        GltfId::TextureLinearInterpolation,
         GltfId::MetalRoughSpheresTextureless,
         GltfId::MorphStressTest,
-        GltfId::MultiUv,
         GltfId::NormalTangent,
         GltfId::NormalTangentMirror,
         GltfId::RecursiveSkeletons,
@@ -34,14 +31,14 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
         //GltfId::MetalRoughSpheresTextureless,
         GltfId::MorphPrimitives,
         //GltfId::MorphStressTest,
-        //GltfId::MultiUv,
+        GltfId::MultiUv,
         // GltfId::NormalTangent,
         // GltfId::NormalTangentMirror,
         GltfId::Orientation,
         //GltfId::RecursiveSkeletons,
         GltfId::TextureCoordinate,
-        //GltfId::TextureLinearInterpolation,
-        //GltfId::TextureSettings,
+        GltfId::TextureLinearInterpolation,
+        GltfId::TextureSettings,
         GltfId::VertexColor,
     ]);
 

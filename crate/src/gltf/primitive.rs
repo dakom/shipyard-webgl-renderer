@@ -64,23 +64,19 @@ impl AwsmRenderer {
 
         struct DataToAdd {
             mesh: Mesh,
-            material_uniforms: MaterialUniforms,
+            material: Material,
             mesh_morph_weights: Option<MeshMorphWeights>,
-            material_forward: Option<MaterialForward>,
-            material_deferred: Option<MaterialDeferred>,
         };
 
         let data_to_add = if let Some(prim_entity) = prim_entity {
             log::info!("primitive already exists: (mesh: {}, prim: {})", mesh.index(), primitive.index());
-            let (entities, mut meshes, mut mesh_morph_weights, mut material_uniforms, mut material_forwards, mut material_deferreds) 
-                    = world.borrow::<(EntitiesViewMut, ViewMut<Mesh>, ViewMut<MeshMorphWeights>, ViewMut<MaterialUniforms>, ViewMut<MaterialForward>, ViewMut<MaterialDeferred>)>()?;
+            let (entities, mut meshes, mut mesh_morph_weights, mut materials) 
+                    = world.borrow::<(EntitiesViewMut, ViewMut<Mesh>, ViewMut<MeshMorphWeights>, ViewMut<Material>)>()?;
 
             DataToAdd {
                 mesh: meshes.get(prim_entity)?.clone(),
                 mesh_morph_weights: mesh_morph_weights.get(prim_entity).ok().cloned(),
-                material_uniforms: material_uniforms.get(prim_entity)?.clone(),
-                material_forward: material_forwards.get(prim_entity).ok().cloned(),
-                material_deferred: material_deferreds.get(prim_entity).ok().cloned()
+                material: materials.get(prim_entity)?.clone(),
             }
         } else {
 
@@ -127,11 +123,8 @@ impl AwsmRenderer {
                     },
                     Semantic::Colors(color_index) => {
                         let data = self.upload_accessor_to_vao_data(res, &accessor, NameOrLoc::Loc(dynamic_loc), Some(BufferTarget::ArrayBuffer))?;
-
-                        log::info!("color size: {}", accessor.dimensions().multiplicity() as u8);
                         buffer_ids.push(data.buffer_id);
                         vao_data.push(data);
-                        log::info!("color_index {color_index} is loc {dynamic_loc}");
                         color_map.insert(color_index, VertexColor { 
                             loc: dynamic_loc , 
                             size: match accessor.dimensions() {
@@ -210,17 +203,6 @@ impl AwsmRenderer {
                 shader_key.n_morph_target_weights += 1;
             }
 
-            let element_buffer_id = match primitive.indices() {
-                Some(indices) => {
-                    // log::warn!("INDICES");
-                    // log::warn!("{:#?}", gltf_accessor_to_scalars(res, &indices)?.len());
-                    let buffer_id = self.upload_gltf_accessor_buffer(res, &indices, Some(BufferTarget::ElementArrayBuffer))?;
-                    buffer_ids.push(buffer_id);
-                    Some(buffer_id)
-                },
-                None => None,
-            };
-
 
             if !texture_coords_map.is_empty() {
                 let mut texture_coords:Vec<(u32, u32)> = texture_coords_map.into_iter().collect();
@@ -253,9 +235,21 @@ impl AwsmRenderer {
                 None 
             };
 
-            let mut material_uniforms = PbrMaterialUniforms::default();
-            self.gltf_set_material_texture_uniforms(world, res, ctx, &mut material_uniforms, &primitive.material())?;
-            material_uniforms.set_shader_key(&mut shader_key);
+            let element_buffer_id = match primitive.indices() {
+                Some(indices) => {
+                    // log::warn!("INDICES");
+                    // log::warn!("{:#?}", gltf_accessor_to_scalars(res, &indices)?.len());
+                    let buffer_id = self.upload_gltf_accessor_buffer(res, &indices, Some(BufferTarget::ElementArrayBuffer))?;
+                    buffer_ids.push(buffer_id);
+                    Some(buffer_id)
+                },
+                None => None,
+            };
+
+
+            let mut material = PbrMaterial::default();
+            self.gltf_set_material_texture_uniforms(world, res, ctx, &mut material, &primitive.material())?;
+            material.set_shader_key(&mut shader_key);
 
             // just to pre-compile
             let program_id = self.mesh_program(shader_key.clone(), self.lights.max_lights)?;
@@ -302,10 +296,8 @@ impl AwsmRenderer {
 
             DataToAdd {
                 mesh,
-                material_uniforms: MaterialUniforms::Pbr(material_uniforms),
+                material: Material::Pbr(material),
                 mesh_morph_weights,
-                material_forward: Some(MaterialForward{}), 
-                material_deferred: None, 
             }
 
 
@@ -315,29 +307,21 @@ impl AwsmRenderer {
         // to the parent mesh node
         super::populate::add_child(world, Some(mesh_entity), None, {
             move |entity| {
-                let (entities, mut gltf_prims, mut meshes, mut mesh_morph_weights, mut material_uniforms, mut material_forwards, mut material_deferreds) 
-                        = world.borrow::<(EntitiesViewMut, ViewMut<GltfPrimitive>, ViewMut<Mesh>, ViewMut<MeshMorphWeights>, ViewMut<MaterialUniforms>, ViewMut<MaterialForward>, ViewMut<MaterialDeferred>)>()?;
+                let (entities, mut gltf_prims, mut meshes, mut mesh_morph_weights, mut materials) 
+                        = world.borrow::<(EntitiesViewMut, ViewMut<GltfPrimitive>, ViewMut<Mesh>, ViewMut<MeshMorphWeights>, ViewMut<Material> )>()?;
 
                 entities.add_component(
                     entity, 
-                    (&mut gltf_prims, &mut meshes, &mut material_uniforms), 
+                    (&mut gltf_prims, &mut meshes, &mut materials), 
                     (
                         GltfPrimitive { mesh_index: gltf_mesh_index, index: gltf_prim_index, mesh_entity },
                         data_to_add.mesh, 
-                        data_to_add.material_uniforms
+                        data_to_add.material
                     )
                 );
 
                 if let Some(m) = data_to_add.mesh_morph_weights {
                     entities.add_component(entity, &mut mesh_morph_weights, m);
-                }
-
-                if let Some(m) = data_to_add.material_forward {
-                    entities.add_component(entity, &mut material_forwards, m);
-                }
-
-                if let Some(m) = data_to_add.material_deferred {
-                    entities.add_component(entity, &mut material_deferreds, m);
                 }
 
                 Ok(()) 

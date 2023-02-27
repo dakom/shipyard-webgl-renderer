@@ -2,11 +2,11 @@ vec4 final_color(Material material, LightOutput light_output) {
     light_output.f_emissive = u_emissive_factor;
 
     #ifdef EMISSIVE_STRENGTH
-        f_emissive *= u_emissive_strength;
+        light_output.f_emissive *= u_emissive_strength;
     #endif
 
-    #ifdef EMISSIVE_MAP
-        f_emissive *= texture(u_emissive_sampler, get_emissive_uv).rgb;
+    #ifdef EMISSIVE_UV_MAP
+        light_output.f_emissive *= texture(u_emissive_sampler, get_emissive_uv()).rgb;
     #endif
 
     // Layer blending
