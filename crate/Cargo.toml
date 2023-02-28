@@ -29,8 +29,9 @@ gltf = "1.0.0"
 libm = "0.2.6"
 rustc-hash = "1.1.0"
 beach_map = "0.2.1"
+exr = { version = "1.5.3", default-features = false }
 # exr = "1.5.3"
-exr = { path = "../../exrs", default-features = false }
+# exr = { path = "../../exrs", default-features = false }
 wasm-bindgen = "0.2.83"
 awsm_web = { version = "0.38.0", features = ["webgl", "loaders", "serde_iso"], default-features = false }
 
