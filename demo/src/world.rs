@@ -19,13 +19,13 @@ use awsm_renderer::{
         animation_update_rotation_sys,
         animation_update_scale_sys,
         animation_update_morph_sys,
-    },
+    }, cubemap::skybox::Skybox,
 };
 
 pub const TRANSFORMS:&'static str = "TRANSFORMS";
 pub const ANIMATION_UPDATES:&'static str = "ANIMATION_UPDATES";
 
-pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>, Rc<RefCell<AwsmRenderer>>)> {
+pub fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>, Rc<RefCell<AwsmRenderer>>)> {
     let world = Rc::new(RefCell::new(World::new()));
 
     let renderer = Rc::new(RefCell::new(AwsmRenderer::new(
@@ -42,6 +42,7 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
             multisample: crate::config::DEFAULT_MULTISAMPLE_RENDERER
         }
     )?));
+
 
     Workload::new(TRANSFORMS)
         .with_system(local_transform_sys)
@@ -142,6 +143,8 @@ pub async fn init_world(canvas:HtmlCanvasElement) -> Result<(Rc<RefCell<World>>,
 
     world.borrow().add_unique_non_send_sync(ResizeWrapper(resize));
     world.borrow().add_unique_non_send_sync(GltfResourceWrapper(None));
+
+
     Ok((world, renderer))
 }
 

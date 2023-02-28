@@ -16,7 +16,6 @@ shipyard = { version = "0.6.2", default-features = false, features = ["proc","th
 shipyard_scenegraph = { version = "0.6.0", default-features = false, features = ["nalgebra_glm_math"] }
 nalgebra-glm = "0.17.0"
 nalgebra = "0.31.4"
-awsm_web = { version = "0.38.0", features = ["webgl", "loaders", "serde_iso"], default-features = false }
 serde = "1.0.148"
 serde_json = "1.0.89"
 cfg-if = "1.0.0"
@@ -30,6 +29,10 @@ gltf = "1.0.0"
 libm = "0.2.6"
 rustc-hash = "1.1.0"
 beach_map = "0.2.1"
+# exr = "1.5.3"
+exr = { path = "../../exrs", default-features = false }
+wasm-bindgen = "0.2.83"
+awsm_web = { version = "0.38.0", features = ["webgl", "loaders", "serde_iso"], default-features = false }
 
 # [patch.crates-io]
 # shipyard = { version = "^0.3", features = ["proc", "non_send", "non_sync"], default-features = false}

@@ -44,6 +44,9 @@ jobs:
       run: yarn github:deploy:patch
       working-directory: ./demo
 
+    - name: copy required media files
+      run: cp -R ./demo/media/image ./demo/dist/
+
     - name: deploy to gh_pages
       uses: maxheld83/ghpages@master
       env:

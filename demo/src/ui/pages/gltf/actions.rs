@@ -3,6 +3,7 @@ use super::state::*;
 use crate::gltf::actions::switch_gltf;
 use crate::camera::CameraKind as LocalCameraKind;
 use awsm_renderer::camera::CameraKind;
+use awsm_renderer::cubemap::skybox::Skybox;
 
 impl GltfPage {
     pub fn load_gltf(self: Rc<Self>, id: GltfId) {
@@ -34,6 +35,18 @@ impl GltfPage {
            
 
         }));
+    }
+
+    pub fn set_renderer(&self, renderer: Rc<RefCell<AwsmRenderer>>) {
+        *self._renderer.borrow_mut() = Some(renderer);
+    }
+
+    pub fn renderer_cell(&self) -> Rc<RefCell<AwsmRenderer>> {
+        self._renderer.borrow().as_ref().unwrap_ext().clone()
+    }
+
+    pub async fn init_skybox(&self) {
+        let skybox = Skybox::load_exr(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image)).await.unwrap_ext();
     }
 
     pub fn on_mouse_down(self: Rc<Self>, evt: events::MouseDown) {

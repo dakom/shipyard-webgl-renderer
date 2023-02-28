@@ -1,3 +1,4 @@
+use awsm_renderer::cubemap::skybox::Skybox;
 use wasm_bindgen_futures::spawn_local;
 use super::state::*;
 use std::cell::RefCell;
@@ -30,10 +31,11 @@ impl Stage {
                         let width = canvas.width();
                         let height = canvas.height();
 
-                        let (world, renderer) = init_world(canvas).await.unwrap_ext();
+                        let (world, renderer) = init_world(canvas).unwrap_ext();
 
                         state.page.world.set(Some(world));
                         state.page.set_renderer(renderer);
+                        state.page.init_skybox().await;
 
                     })
                 }))

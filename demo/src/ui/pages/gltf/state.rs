@@ -10,7 +10,7 @@ pub struct GltfPage {
     pub loader: AsyncLoader,
     pub pointer: Cell<Option<(i32,i32)>>,
     pub keys_down: RefCell<HashSet<String>>,
-    _renderer: RefCell<Option<Rc<RefCell<AwsmRenderer>>>>,
+    pub(super) _renderer: RefCell<Option<Rc<RefCell<AwsmRenderer>>>>,
 }
 
 impl GltfPage {
@@ -28,15 +28,8 @@ impl GltfPage {
         })
     }
 
-    pub fn set_renderer(&self, renderer: Rc<RefCell<AwsmRenderer>>) {
-        *self._renderer.borrow_mut() = Some(renderer);
-    }
-
     pub fn world_cell(&self) -> Rc<RefCell<World>> {
         self.world.get_cloned().unwrap_ext()
     }
 
-    pub fn renderer_cell(&self) -> Rc<RefCell<AwsmRenderer>> {
-        self._renderer.borrow().as_ref().unwrap_ext().clone()
-    }
 }

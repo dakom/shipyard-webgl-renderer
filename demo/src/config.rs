@@ -22,6 +22,8 @@ cfg_if::cfg_if! {
                 //init_gltf: Some(GltfId::Cube),
                 gltf_url: "http://127.0.0.1:9000/glTF-Sample-Models/2.0",
                 image_url: "http://127.0.0.1:9000/image",
+                //skybox_image: "scythian_tombs_2_1k.exr", // exr takes a while to load in debug mode
+                skybox_image: "solid-blue.png",
             }
         });
     } else {
@@ -32,6 +34,7 @@ cfg_if::cfg_if! {
                 init_gltf: None,
                 gltf_url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0",
                 image_url: "/media/image",
+                skybox_image: "scythian_tombs_2_2k.exr",
             }
         });
     }
@@ -42,6 +45,7 @@ pub struct Config {
     pub init_gltf: Option<GltfId>,
     pub gltf_url: &'static str,
     pub image_url: &'static str,
+    pub skybox_image: &'static str,
 }
 
 fn check_env(name: &str) -> Option<String> {
