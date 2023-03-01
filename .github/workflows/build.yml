@@ -45,7 +45,9 @@ jobs:
       working-directory: ./demo
 
     - name: copy required media files
-      run: cp -R ./demo/media/image ./demo/dist/
+      run: |
+        mkdir ./demo/dist/media
+        cp -R ./demo/media/image ./demo/dist/media/
 
     - name: deploy to gh_pages
       uses: maxheld83/ghpages@master
