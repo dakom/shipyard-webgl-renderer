@@ -52,6 +52,7 @@ impl ExrImage {
             .on_progress(|progress| {
                 log::info!("progress: {:?}", progress);
             })
+            .non_parallel()
             .from_buffered(cursor)?;
 
         Ok(result.layer_data.channel_data.pixels)

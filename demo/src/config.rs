@@ -22,8 +22,8 @@ cfg_if::cfg_if! {
                 //init_gltf: Some(GltfId::Cube),
                 gltf_url: "http://127.0.0.1:9000/glTF-Sample-Models/2.0",
                 image_url: "http://127.0.0.1:9000/image",
-                //skybox_image: "scythian_tombs_2_1k.exr", // exr takes a while to load in debug mode
-                skybox_image: "solid-blue.png",
+                skybox_image: "scythian_tombs_2_1k.exr", // exr takes a while to load in debug mode
+                //skybox_image: "solid-blue.png",
             }
         });
     } else {

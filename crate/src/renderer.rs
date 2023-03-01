@@ -67,6 +67,8 @@ impl AwsmRenderer {
 
         let mut gl = WebGl2Renderer::new(gl)?;
 
+        gl.register_extension("OES_texture_float_linear")?;
+        gl.register_extension("EXT_color_buffer_float")?;
 
         let shaders = ShaderCache::new(&mut gl)?;
         let camera = Camera::new(&mut gl)?;

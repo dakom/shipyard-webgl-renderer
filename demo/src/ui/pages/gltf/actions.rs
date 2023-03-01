@@ -46,7 +46,7 @@ impl GltfPage {
     }
 
     pub async fn init_skybox(&self) {
-        let skybox = Skybox::load_exr(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image)).await.unwrap_ext();
+        let skybox = Skybox::load_exr(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image), self.renderer_cell()).await.unwrap_ext();
     }
 
     pub fn on_mouse_down(self: Rc<Self>, evt: events::MouseDown) {

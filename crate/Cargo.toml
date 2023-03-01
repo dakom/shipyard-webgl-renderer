@@ -10,7 +10,6 @@ description = "Wasm/WebGl renderer"
 categories = ["wasm"]
 keywords = ["webgl", "renderer", "3d", "graphics", "gamedev"]
 
-
 [dependencies]
 shipyard = { version = "0.6.2", default-features = false, features = ["proc","thread_local" ] }
 shipyard_scenegraph = { version = "0.6.0", default-features = false, features = ["nalgebra_glm_math"] }
@@ -33,6 +32,7 @@ exr = { version = "1.5.3", default-features = false }
 # exr = "1.5.3"
 # exr = { path = "../../exrs", default-features = false }
 wasm-bindgen = "0.2.83"
+js-sys = "0.3.60"
 awsm_web = { version = "0.38.0", features = ["webgl", "loaders", "serde_iso"], default-features = false }
 
 # [patch.crates-io]
@@ -61,3 +61,5 @@ features = [
 default = []
 remote-media = []
 dev = ["awsm_web/unwrap_verbose"]
+
+

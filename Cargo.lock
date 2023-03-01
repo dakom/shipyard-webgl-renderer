@@ -67,6 +67,7 @@ dependencies = [
  "exr",
  "futures",
  "gltf",
+ "js-sys",
  "libm",
  "log",
  "nalgebra",
