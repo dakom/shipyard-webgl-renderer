@@ -1,5 +1,5 @@
 mod draw_buffers;
-mod cleanup;
+pub mod cleanup;
 pub(crate) mod material;
 pub(crate) mod mesh;
 pub mod systems;

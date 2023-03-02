@@ -1,15 +1,25 @@
 use std::{rc::Rc, cell::RefCell};
 
-use super::loader::load_cubemap;
+use awsm_web::webgl::WebGl2Renderer;
+
 use crate::prelude::*;
+
+use super::cubemap::CubeMap;
 
 #[derive(Unique)]
 pub struct Skybox {
+    pub cubemap: CubeMap
 }
 
 impl Skybox {
-    pub async fn load_exr(url: &str, renderer: Rc<RefCell<AwsmRenderer>>) -> Result<Self> {
-        let cubemap = load_cubemap(url, renderer).await?; 
-        Ok(Self {})
+    pub fn new(renderer: &mut AwsmRenderer, cubemap: CubeMap) -> Result<Self> {
+        Ok(Self {cubemap})
+    }
+}
+
+impl DestroyWithGl for Skybox {
+    fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
+        self.cubemap.destroy(&mut gl)?;
+        Ok(())
     }
 }

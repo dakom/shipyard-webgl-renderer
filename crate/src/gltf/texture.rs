@@ -1,6 +1,6 @@
 use std::collections::hash_map::Entry;
 
-use crate::prelude::*;
+use crate::{prelude::*, image::ImageLoader};
 use super::{loader::GltfResource, populate::GltfPopulateContext};
 use awsm_web::webgl::{
     TextureTarget,
@@ -46,8 +46,11 @@ impl AwsmRenderer {
                     None => false 
                 };
 
-                let src = &WebGlTextureSource::ImageElement(image);
-                if use_mips && !is_power_of_2(src) {
+                let src = match image {
+                    ImageLoader::HtmlImage(image) => WebGlTextureSource::ImageElement(image),
+                    ImageLoader::Exr(_) => return Err(anyhow!("exr not supported yet")),
+                };
+                if use_mips && !is_power_of_2(&src) {
                     // do nothing... webgl2 supports mipmapping non-power-of-2
                 }
 
@@ -111,7 +114,7 @@ impl AwsmRenderer {
 
 
                     }), 
-                    src 
+                    &src 
                 )?;
 
                 if use_mips {

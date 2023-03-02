@@ -10,4 +10,4 @@ pub mod tag;
 pub mod animation;
 pub mod debug;
 pub mod cubemap;
-pub mod exr;
+pub mod image;

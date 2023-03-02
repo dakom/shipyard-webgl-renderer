@@ -16,18 +16,17 @@ use std::future::Future;
 use futures::future::try_join_all;
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::prelude::*;
+use crate::{prelude::*, image::ImageLoader};
 
 
 
 type DataResult = Result<Vec<u8>>;
-type ImageResult = Result<HtmlImageElement>;
 
 
 pub struct GltfResource {
     pub gltf: Document,
     pub buffers: Vec<Vec<u8>>,
-    pub images: Vec<HtmlImageElement>
+    pub images: Vec<ImageLoader>
 }
 
 pub enum GltfFileType {
@@ -143,7 +142,7 @@ fn get_buffer_futures<'a>(document:&'a Document, base:&str, blob: Option<Vec<u8>
     }).collect()
 }
 
-async fn import_image_data<'a>(document: &'a Document, base: &'a str, buffer_data:&'a [Vec<u8>]) -> Result<Vec<HtmlImageElement>> {
+async fn import_image_data<'a>(document: &'a Document, base: &'a str, buffer_data:&'a [Vec<u8>]) -> Result<Vec<ImageLoader>> {
 
     let futures = get_image_futures(document, base, buffer_data);
 
@@ -151,7 +150,7 @@ async fn import_image_data<'a>(document: &'a Document, base: &'a str, buffer_dat
 }
 
 
-fn get_image_futures<'a>(document:&'a Document, base:&str, buffer_data:&'a [Vec<u8>]) -> Vec<impl Future<Output=ImageResult> + 'a> {
+fn get_image_futures<'a>(document:&'a Document, base:&str, buffer_data:&'a [Vec<u8>]) -> Vec<impl Future<Output=Result<ImageLoader>> + 'a> {
     //these need to be owned by each future simultaneously
     let base = Rc::new(base.to_owned());
 
@@ -160,17 +159,16 @@ fn get_image_futures<'a>(document:&'a Document, base:&str, buffer_data:&'a [Vec<
         async move {
             match image.source() {
                 image::Source::Uri { uri, mime_type: _ } => {
-
                     let url = get_url(base.as_ref(), uri)?;
-
-                    load_image(url).await.map_err(|err| err.into())
+                    ImageLoader::load_url(&url).await
                 },
                 image::Source::View { view, mime_type } => {
                     let parent_buffer_data = &buffer_data[view.buffer().index()];
                     let begin = view.offset();
                     let end = begin + view.length();
                     let encoded_image = &parent_buffer_data[begin..end];
-                    load_image_u8(&encoded_image, &mime_type).await.map_err(|err| err.into())
+                    let image = load_image_u8(&encoded_image, &mime_type).await?;
+                    Ok(ImageLoader::HtmlImage(image))
                 },
             }
         } 

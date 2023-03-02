@@ -38,7 +38,8 @@ pub struct DrawBuffers {
     pub width: u32,
     pub height: u32,
     pub clear_color: [f32;4],
-    pub fbos: Vec<FrameBuffer>,
+    pub fbo_main_draw: Option<FrameBuffer>,
+    pub fbo_main_multisample: Option<FrameBuffer>,
     pub mode: DrawBufferMode
 }
 
@@ -50,7 +51,10 @@ pub enum DrawBufferMode {
 
 impl DestroyWithGl for DrawBuffers {
     fn destroy(&mut self, mut gl:&mut WebGl2Renderer) -> Result<()> {
-        for mut fbo in self.fbos.drain(..) {
+        if let Some(mut fbo) = self.fbo_main_draw.take() {
+            fbo.destroy(&mut gl)?;
+        }
+        if let Some(mut fbo) = self.fbo_main_multisample.take() {
             fbo.destroy(&mut gl)?;
         }
         Ok(())
@@ -72,27 +76,27 @@ impl DrawBuffers {
 
         let multisample = mode == DrawBufferMode::Multisample;
 
-        let mut fbos = Vec::new();
 
-        let fbo = FrameBuffer::new(renderer)?
+        let fbo_main_draw = FrameBuffer::new(renderer)?
             .build_depth(renderer, width, height, FrameBufferIdKind::Render, multisample)?
             .build_color(renderer, width, height, FrameBufferIdKind::Render, multisample)?
             .validate(renderer)?;
 
         renderer.gl.draw_buffers(&vec![DrawBuffer::Color0])?;
-        fbo.release(renderer);
-        fbos.push(fbo);
+        fbo_main_draw.release(renderer);
 
-        match mode {
-            DrawBufferMode::Regular => {},
+        let fbo_main_multisample = match mode {
+            DrawBufferMode::Regular => {
+                None
+            },
             DrawBufferMode::Multisample => {
                 // multisample blit target is just color for downsampling, no need for depth
-                let fbo = FrameBuffer::new(renderer)?
+                let fbo_main_multisample = FrameBuffer::new(renderer)?
                     .build_color(renderer, width, height, FrameBufferIdKind::Render, false)?
                     .validate(renderer)?;
 
-                fbo.release(renderer);
-                fbos.push(fbo);
+                fbo_main_multisample.release(renderer);
+                Some(fbo_main_multisample)
             }
         };
 
@@ -100,28 +104,32 @@ impl DrawBuffers {
             width,
             height,
             clear_color,
-            fbos,
+            fbo_main_draw: Some(fbo_main_draw),
+            fbo_main_multisample,
             mode
         })
     }
 
     pub fn pre_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
 
-        gl.bind_framebuffer(self.fbos[0].id, FrameBufferTarget::DrawFrameBuffer)?;
-        gl.reset_depth_stencil_draw_buffer();
-        gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
+        if let Some(fbo) = &self.fbo_main_draw {
+            gl.bind_framebuffer(fbo.id, FrameBufferTarget::DrawFrameBuffer)?;
+            gl.reset_depth_stencil_draw_buffer();
+            gl.clear_draw_buffer_vf32_values(Buffer::Color, 0, &self.clear_color);
+        }
 
         Ok(())
     }
 
     pub fn post_draw(&self, gl:&mut WebGl2Renderer) -> Result<()> {
+        if let Some(fbo) = &self.fbo_main_draw {
+            gl.bind_framebuffer(fbo.id, FrameBufferTarget::ReadFrameBuffer)?;
+        }
 
-        gl.bind_framebuffer(self.fbos[0].id, FrameBufferTarget::ReadFrameBuffer)?;
-
-        // this is typically going to be due to multisampling
+        // multisampling
         // i.e. to downsample from the msaa into single-sample fbo
         // and that can't be done directly into the front buffer
-        if let Some(fbo) = &self.fbos.get(1) {
+        if let Some(fbo) = &self.fbo_main_multisample {
             gl.bind_framebuffer(fbo.id, FrameBufferTarget::DrawFrameBuffer)?;
             gl.blit_framebuffer(
                 0,0, self.width, self.height,
@@ -168,11 +176,7 @@ pub enum FrameBufferIdKind {
 
 impl FrameBuffer {
     pub fn new(renderer: &mut AwsmRenderer) -> Result<Self> {
-        let gl = &mut renderer.gl;
-
-        let clear_color = renderer.config.clear_color;
-        let (_, _, width, height) = gl.get_viewport();
-        let id = gl.create_framebuffer()?;
+        let id = renderer.gl.create_framebuffer()?;
 
         Ok(Self{
             id,

@@ -6,6 +6,7 @@ pub use crate::{
     renderer::material::*,
     camera::traits::*,
     tag::*,
+    renderer::cleanup::DestroyWithGl
 };
 pub use anyhow::{Result, bail, anyhow};
 pub use awsm_web::prelude::*;

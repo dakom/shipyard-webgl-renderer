@@ -1,9 +1,13 @@
+use std::cell::{Ref, RefMut};
+
 use crate::prelude::*;
 use super::state::*;
 use crate::gltf::actions::switch_gltf;
 use crate::camera::CameraKind as LocalCameraKind;
 use awsm_renderer::camera::CameraKind;
+use awsm_renderer::cubemap::cubemap::CubeMap;
 use awsm_renderer::cubemap::skybox::Skybox;
+use awsm_renderer::image::ImageLoader;
 
 impl GltfPage {
     pub fn load_gltf(self: Rc<Self>, id: GltfId) {
@@ -46,7 +50,14 @@ impl GltfPage {
     }
 
     pub async fn init_skybox(&self) {
-        let skybox = Skybox::load_exr(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image), self.renderer_cell()).await.unwrap_ext();
+        let image = ImageLoader::load_url(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image)).await.unwrap_ext();
+
+        let renderer = self.renderer_cell();
+        let renderer = &mut *renderer.borrow_mut();
+        let img_texture_id = image.to_texture(renderer).unwrap_ext();
+        let (img_width, img_height) = image.size();
+        let cubemap = CubeMap::new_panorama(renderer, img_texture_id, img_width, img_height).unwrap_ext();
+        let skybox = Skybox::new(renderer, cubemap).unwrap_ext();
     }
 
     pub fn on_mouse_down(self: Rc<Self>, evt: events::MouseDown) {
