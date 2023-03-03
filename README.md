@@ -9,7 +9,7 @@
 
 Nothing to see here... YET!
 
-#[DEMO](https://dakom.github.io/awsm-renderer)
+# [DEMO](https://dakom.github.io/awsm-renderer)
 
 # What will it be?
 
