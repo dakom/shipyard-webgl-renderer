@@ -9,6 +9,8 @@
 
 Nothing to see here... YET!
 
+#[DEMO](https://dakom.github.io/awsm-renderer)
+
 # What will it be?
 
 A Rust wasm/webgl2 renderer that uses [Shipyard ECS](https://github.com/leudz/shipyard) for the Entity-Component-System engine and [awsm-web](https://github.com/dakom/awsm-web) for web api helpers.
