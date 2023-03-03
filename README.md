@@ -11,7 +11,7 @@ Nothing to see here... YET!
 
 # What will it be?
 
-A webgl2 renderer that uses [Shipyard ECS](https://github.com/leudz/shipyard) for the Entity-Component-System engine and [awsm-web](https://github.com/dakom/awsm-web) for web api helpers.
+A Rust wasm/webgl2 renderer that uses [Shipyard ECS](https://github.com/leudz/shipyard) for the Entity-Component-System engine and [awsm-web](https://github.com/dakom/awsm-web) for web api helpers.
 
 Though by the time it's done, WebGPU might be a thing... so we'll see :P
 
