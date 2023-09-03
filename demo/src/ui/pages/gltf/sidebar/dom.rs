@@ -31,7 +31,7 @@ impl Sidebar {
 
                                 html!("div", { 
                                     .class(["flex", "flex-col", "gap-8"])
-                                    .child(render_dropdown_group("model", state.clone().render_set_selector()))
+                                    .child(render_dropdown_group("series", state.clone().render_set_selector()))
                                     .child_signal(state.page.gltf_set.signal().map(clone!(state => move |data| {
                                         data.map(clone!(state => move |set_name| render_dropdown_group("model", state.clone().render_gltf_selector(set_name))))
                                     })))

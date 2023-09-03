@@ -17,21 +17,26 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
     let mut h = HashMap::new();
 
     h.insert("Todo", vec![
+        GltfId::EnvironmentTest,
+        GltfId::EnvironmentIblTest,
+        GltfId::MetalRoughSpheres,
         GltfId::MetalRoughSpheresTextureless,
         GltfId::MorphStressTest,
         GltfId::NormalTangent,
         GltfId::NormalTangentMirror,
         GltfId::RecursiveSkeletons,
+        GltfId::NegativeScale,
     ]);
 
     h.insert("Feature tests", vec![
         GltfId::AlphaBlendMode,
         GltfId::BoomBoxAxes,
-        GltfId::MetalRoughSpheres,
+        //GltfId::MetalRoughSpheres,
         //GltfId::MetalRoughSpheresTextureless,
         GltfId::MorphPrimitives,
         //GltfId::MorphStressTest,
         GltfId::MultiUv,
+        //GltfId::NegativeScale,
         // GltfId::NormalTangent,
         // GltfId::NormalTangentMirror,
         GltfId::Orientation,
@@ -65,6 +70,11 @@ pub static GLTF_SETS:Lazy<HashMap<&'static str, Vec<GltfId>>> = Lazy::new(|| {
         GltfId::Cube,
     ]);
 
+    h.insert("Extension Tests", vec![
+        // GltfId::EnvironmentTest,
+        // GltfId::EnvironmentIblTest,
+    ]);
+
     h
 });
 
@@ -80,6 +90,7 @@ pub enum GltfId {
     MorphPrimitives,
     MorphStressTest,
     MultiUv,
+    NegativeScale,
     NormalTangent,
     NormalTangentMirror,
     Orientation,
@@ -112,7 +123,12 @@ pub enum GltfId {
     BoxTexturedNpoT,
     BoxWithSpaces,
     BoxVertexColors,
-    Cube
+    Cube,
+
+    // EXTENSION TESTS
+    // https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0#feature-tests-1
+    EnvironmentTest,
+    EnvironmentIblTest,
 }
 
 impl From<&str> for GltfId {
@@ -150,6 +166,7 @@ impl GltfId {
             Self::MorphPrimitives => "MorphPrimitivesTest/glTF/MorphPrimitivesTest.gltf",
             Self::MorphStressTest => "MorphStressTest/glTF/MorphStressTest.gltf",
             Self::MultiUv => "MultiUVTest/glTF/MultiUVTest.gltf",
+            Self::NegativeScale => "NegativeScaleTest/glTF/NegativeScaleTest.gltf",
             Self::NormalTangent => "NormalTangentTest/glTF/NormalTangentTest.gltf",
             Self::NormalTangentMirror => "NormalTangentMirrorTest/glTF/NormalTangentMirrorTest.gltf",
             Self::Orientation => "OrientationTest/glTF/OrientationTest.gltf",
@@ -178,6 +195,10 @@ impl GltfId {
             Self::BoxWithSpaces => "Box With Spaces/glTF/Box With Spaces.gltf",
             Self::BoxVertexColors => "BoxVertexColors/glTF/BoxVertexColors.gltf",
             Self::Cube => "Cube/glTF/Cube.gltf",
+
+            // Extension Tests
+            Self::EnvironmentTest => "EnvironmentTest/glTF/EnvironmentTest.gltf",
+            Self::EnvironmentIblTest => "EnvironmentTest/glTF-IBL/EnvironmentTest.gltf",
         }
     }
 
@@ -191,6 +212,7 @@ impl GltfId {
             Self::MorphPrimitives => "Morph primitives",
             Self::MorphStressTest => "Morph stress test",
             Self::MultiUv => "Multi uvs",
+            Self::NegativeScale => "Negative scale",
             Self::NormalTangent => "Normal tangent auto",
             Self::NormalTangentMirror => "Normal tangent supplied",
             Self::Orientation => "Orientation",
@@ -220,6 +242,10 @@ impl GltfId {
             Self::BoxWithSpaces => "Box with spaces",
             Self::BoxVertexColors => "Box vertex colors",
             Self::Cube => "Cube",
+
+            // Extension Tests
+            Self::EnvironmentTest => "Environment test",
+            Self::EnvironmentIblTest => "Environment ibl test",
         }
     }
 }

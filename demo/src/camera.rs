@@ -91,7 +91,15 @@ impl GltfId {
                 let mid = bounds.mid();
                 let max_max = bounds.x_max.max(bounds.y_max).max(bounds.z_max);
                 let min_min = bounds.x_min.min(bounds.y_min).min(bounds.z_min);
-                Point3::new(0.0, 0.0, max_max.abs().max(min_min.abs()) as f64 * 4.0) 
+                let default = Point3::new(0.0, 0.0, max_max.abs().max(min_min.abs()) as f64 * 4.0);
+
+                match self {
+                    Self::EnvironmentTest | Self::EnvironmentIblTest => {
+                        log::info!("eye at {:?}", default);
+                        Point3::new(0.0, 3.0, 30.0)
+                    },
+                    _ => default
+                }
             },
             None => {
                 // sane defaults
@@ -153,10 +161,18 @@ impl GltfId {
             Some(bounds) => {
                 let mid = bounds.mid();
                 //Point3::new(0.0, 0.0, 0.0)
-                Point3::new(mid[0] as f64 * 1.0, mid[1] as f64 * 1.0, mid[2] as f64 * 1.0)
+                let default = Point3::new(mid[0] as f64 * 1.0, mid[1] as f64 * 1.0, mid[2] as f64 * 1.0);
                 //Point3::new(mid[0] as f64, mid[1] as f64, mid[2] as f64)
                 //Point3::new(mid[2] as f64, mid[0] as f64, mid[1] as f64)
                 //Point3::new(bounds.x_min as f64, bounds.y_min as f64, bounds.z_min as f64)
+
+                match self {
+                    Self::EnvironmentTest | Self::EnvironmentIblTest => {
+                        log::info!("look at: {:?}", default);
+                        Point3::new(0.0, 3.0, 0.0)
+                    },
+                    _ => default
+                }
             },
             None => {
                 // sane defaults
