@@ -49,16 +49,6 @@ impl GltfPage {
         self._renderer.borrow().as_ref().unwrap_ext().clone()
     }
 
-    pub async fn init_skybox(&self) {
-        let image = ImageLoader::load_url(&format!("{}/skybox/{}", CONFIG.image_url, CONFIG.skybox_image)).await.unwrap_ext();
-
-        let renderer = self.renderer_cell();
-        let renderer = &mut *renderer.borrow_mut();
-        let img_texture_id = image.to_texture(renderer).unwrap_ext();
-        let (img_width, img_height) = image.size();
-        let cubemap = CubeMap::new_panorama(renderer, img_texture_id, img_width, img_height).unwrap_ext();
-        let skybox = Skybox::new(renderer, cubemap).unwrap_ext();
-    }
 
     pub fn on_mouse_down(self: Rc<Self>, evt: events::MouseDown) {
         self.pointer.set(Some((evt.x(), evt.y())));

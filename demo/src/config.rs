@@ -10,6 +10,7 @@ pub const DEFAULT_SCREEN_STATIC_ZOOM:f64 = 100.0;
 pub const DEFAULT_SCREEN_STATIC_NEAR_PLANE:f64 = -10_100.0;
 pub const DEFAULT_SCREEN_STATIC_FAR_PLANE:f64 = 10_100.0;
 pub const DEFAULT_MULTISAMPLE_RENDERER: bool = true;
+pub const DEFAULT_SKYBOX: bool = false;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "dev")] {
@@ -23,6 +24,9 @@ cfg_if::cfg_if! {
                 gltf_url: "http://127.0.0.1:9000/glTF-Sample-Models/2.0",
                 image_url: "http://127.0.0.1:9000/image".to_string(),
                 skybox_image: "scythian_tombs_2_1k.exr", // exr takes a while to load in debug mode
+                //skybox_image: "scythian_tombs_2_8k.exr", // exr takes a while to load in debug mode
+                //skybox_image: "blue_photo_studio_1k.exr",
+                //skybox_image: "blue_photo_studio_8k.exr",
                 //skybox_image: "solid-blue.png",
             }
         });

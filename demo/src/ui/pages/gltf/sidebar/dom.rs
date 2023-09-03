@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use super::state::*;
 use crate::{prelude::*, route::Route, ui::primitives::{checkbox::Checkbox, dropdown::{Dropdown, DropdownOption}}, gltf::id::GLTF_SETS};
 use crate::camera::CameraKind;
@@ -37,6 +39,7 @@ impl Sidebar {
                                         data.map(clone!(state => move |(gltf_id, camera)| render_dropdown_group("camera", state.clone().render_camera_selector(gltf_id, camera))))
                                     })))
                                     .child(state.clone().render_multisample_checkbox())
+                                    .child(state.clone().render_skybox_checkbox())
                                 })
                             }
                             None => {
@@ -122,6 +125,15 @@ impl Sidebar {
 
             let (_, _, width, height) = renderer.gl.get_viewport();
             renderer.resize(awsm_web::webgl::ResizeStrategy::All(width, height)).unwrap_ext();
+        })).render()
+    }
+
+    fn render_skybox_checkbox(self: Rc<Self>) -> Dom {
+        let state = self;
+
+        Checkbox::new("Skybox".to_string(), state.skybox_selected.load(Ordering::SeqCst), clone!(state => move |value| {
+            state.skybox_selected.store(value, Ordering::SeqCst);
+            state.clone().do_skybox();
         })).render()
     }
 }

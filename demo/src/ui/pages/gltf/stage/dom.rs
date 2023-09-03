@@ -35,8 +35,6 @@ impl Stage {
 
                         state.page.world.set(Some(world));
                         state.page.set_renderer(renderer);
-                        state.page.init_skybox().await;
-
                     })
                 }))
                 .with_node!(canvas => {
