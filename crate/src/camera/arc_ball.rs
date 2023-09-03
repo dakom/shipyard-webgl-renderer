@@ -2,6 +2,8 @@
 pub mod controller;
 
 use crate::camera::traits::*; 
+use awsm_web::prelude::UnwrapExt;
+use nalgebra_glm::translate;
 use shipyard::Component;
 use nalgebra::{self as na, Isometry3, Matrix4, Perspective3, Point3, Unit, UnitQuaternion, Vector2, Vector3};
 use std::f64;
@@ -46,7 +48,10 @@ pub struct ArcBall {
     pub(super) view: Matrix4<f64>,
     pub(super) proj: Matrix4<f64>,
     pub(super) proj_view: Matrix4<f64>,
-    pub(super) inverse_proj_view: Matrix4<f64>,
+    pub(super) view_projection_inverse: Matrix4<f64>,
+    // the inverse of the projected view matrix, but with the translation zeroed out
+    // useful for skybox
+    pub(super) view_projection_direction_inverse: Matrix4<f64>,
     pub(super) coord_system: CoordSystemRh,
 }
 
@@ -76,11 +81,12 @@ impl ArcBall {
             min_pitch: 0.01,
             max_pitch: std::f64::consts::PI - 0.01,
             dist_step: 100.0,
-            projection: Perspective3::new(800.0 / 600.0, fov, znear, zfar),
+            projection: Perspective3::new(16.0 / 9.0, fov, znear, zfar),
             view: na::zero(),
             proj: na::zero(),
             proj_view: na::zero(),
-            inverse_proj_view: na::zero(),
+            view_projection_inverse: na::zero(),
+            view_projection_direction_inverse: na::zero(),
             coord_system: CoordSystemRh::from_up_axis(Vector3::y_axis()),
         };
 
@@ -226,9 +232,18 @@ impl ArcBall {
     pub(super) fn update_projviews(&mut self) {
         self.proj = *self.projection.as_matrix();
         self.view = Isometry3::look_at_rh(&self.eye(), &self.at, &self.coord_system.up_axis).to_homogeneous();
-
         self.proj_view = self.proj * self.view;
-        self.inverse_proj_view = self.proj_view.try_inverse().unwrap();
+        self.view_projection_inverse = self.proj_view.try_inverse().unwrap();
+
+        // for skybox...
+        let mut view_direction_only = self.view.clone();
+        view_direction_only.m14 = 0.0;
+        view_direction_only.m24 = 0.0;
+        view_direction_only.m34 = 0.0;
+        //log::info!("{:#?}", view_direction_only);
+
+        // the FOV makes skybox blurry... whatever...
+        self.view_projection_direction_inverse = (self.proj * view_direction_only).try_inverse().unwrap();
 
     }
 
@@ -258,13 +273,16 @@ impl CameraBase for ArcBall {
 
     fn position(&self) -> Vector3<f64> {
         // not sure which of these is more correct tbh...
-        let inv_view = self.projection_view_inverse();
+        let inv_view = self.view_projection_inverse();
         let position:Isometry3<f64> = nalgebra::convert_unchecked(*inv_view);
         position.translation.vector
         //self.eye().coords
     }
-    fn projection_view_inverse(&self) -> &Matrix4<f64> {
-        &self.inverse_proj_view
+    fn view_projection_direction_inverse(&self) -> &Matrix4<f64> {
+        &self.view_projection_direction_inverse
+    }
+    fn view_projection_inverse(&self) -> &Matrix4<f64> {
+        &self.view_projection_inverse
     }
 
     fn view(&self) -> &Matrix4<f64> {
@@ -292,7 +310,7 @@ impl CameraExt for ArcBall {
     }
 
     fn inverse_transformation(&self) -> &Matrix4<f64> {
-        &self.inverse_proj_view
+        &self.view_projection_inverse
     }
     fn clip_planes(&self) -> (f64, f64) {
         (self.projection.znear(), self.projection.zfar())

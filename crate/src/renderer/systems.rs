@@ -4,7 +4,7 @@ use awsm_web::webgl::{
     BlendFactor,
     BeginMode, 
     BufferTarget, 
-    UniformType, TextureTarget,
+    UniformType, TextureTarget, CmpFunction,
 };
 use nalgebra::Matrix4;
 use super::draw_buffers::DrawBuffers;
@@ -40,15 +40,28 @@ pub fn render_sys(
         (Some(draw_buffers), Some(camera)) => {
 
 
-            let mut world_transform_buf:[f32;16] = [0.0;16];
+            let mut mat4_buf:[f32;16] = [0.0;16];
             // forward vs. deferred is not totally right yet
             // but the buffers are sorta kinda setup ish
             // (probably just get rid of deferred and rely on culling)
             draw_buffers.pre_draw(gl)?;
 
+            // TODO - move to end, just here for debugging
+            if let Some(skybox) = renderer.skybox.as_ref() {
+                gl.set_depth_mask(true);
+                gl.toggle(GlToggle::Blend, false);
+                gl.toggle(GlToggle::DepthTest, true);
+                gl.set_depth_func(CmpFunction::Lequal);
+                gl.activate_program(renderer.shaders.programs.skybox)?;
+                gl.activate_vertex_array(draw_buffers.quad.vao_id)?;
+                gl.activate_texture_sampler_name(skybox.cubemap.cubemap_texture_id, "u_sampler");
+                gl.draw_arrays(BeginMode::TriangleStrip, 0, 4); 
+            }
+
             gl.set_depth_mask(true);
-            gl.toggle(GlToggle::DepthTest, true);
             gl.toggle(GlToggle::Blend, true);
+            gl.toggle(GlToggle::DepthTest, true);
+            gl.set_depth_func(CmpFunction::Less);
             gl.set_blend_func(BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
 
             for (entity, (mesh, material, world_transform,))
@@ -61,10 +74,10 @@ pub fn render_sys(
 
                     // let mut mat = WorldTransform::new(Matrix4::identity());
                     // mat.write_to_vf32(&mut world_transform_buf);
-                    world_transform.write_to_vf32(&mut world_transform_buf);
+                    world_transform.write_to_vf32(&mut mat4_buf);
                     gl.activate_program(mesh.program_id)?;
                     gl.activate_vertex_array(mesh.vao_id)?;
-                    gl.upload_uniform_mat_4_name("u_model", &world_transform_buf)?;
+                    gl.upload_uniform_mat_4_name("u_model", &mat4_buf)?;
 
                     if let Ok(morph_weights) = mesh_morph_weights.get(entity) {
                         gl.upload_uniform_fvec_name("u_morph_weight", UniformType::Vector1, &morph_weights.0)?;
@@ -78,8 +91,8 @@ pub fn render_sys(
                     // resize as needed
                     for (i, skin_joint_entity) in mesh.skin_joints.iter().enumerate() {
                         if let Ok(skin_joint) = mesh_skin_joints.get(*skin_joint_entity) {
-                            skin_joint.world_transform.write_to_vf32(&mut world_transform_buf);
-                            gl.upload_uniform_mat_4_name(&format!("u_skin_joint[{}]", i), &world_transform_buf)?;
+                            skin_joint.world_transform.write_to_vf32(&mut mat4_buf);
+                            gl.upload_uniform_mat_4_name(&format!("u_skin_joint[{}]", i), &mat4_buf)?;
                         }
                     }
 

@@ -20,6 +20,7 @@ pub use vertex::*;
 
 pub(super) const COMMON_CAMERA:&'static str = include_str!("./shaders/glsl/common/camera.glsl");
 pub(super) const COMMON_MATH:&'static str = include_str!("./shaders/glsl/common/math.glsl");
+pub(super) const COMMON_COLOR_SPACE:&'static str = include_str!("./shaders/glsl/common/color_space.glsl");
 
 pub struct ShaderCache {
     pub(crate) programs: ProgramCache,
@@ -30,8 +31,9 @@ pub struct ShaderCache {
 type MaxLights = u32;
 
 pub(crate) struct ProgramCache {
-    pub draw_buffers_quad_texture: Id,
     pub sprite: Id,
+    pub panorama_cubemap: Id,
+    pub skybox: Id,
     pub mesh: FxHashMap<(ShaderKey, MaxLights), Id>,
 }
 
@@ -132,7 +134,8 @@ impl ProgramCache {
     pub fn new(mut gl:&mut WebGl2Renderer, vertex_ids: &VertexCache, fragment_ids: &FragmentCache) -> Result<Self> {
         let _self = Self {
             sprite: gl.compile_program(&vec![vertex_ids.quad_unit, fragment_ids.unlit_diffuse])?,
-            draw_buffers_quad_texture: gl.compile_program(&vec![vertex_ids.quad_full_screen, fragment_ids.quad_texture])?,
+            panorama_cubemap: gl.compile_program(&vec![vertex_ids.fullscreen_triangle, fragment_ids.panorama_to_cubemap])?,
+            skybox: gl.compile_program(&vec![vertex_ids.skybox, fragment_ids.skybox])?,
             mesh: FxHashMap::default(),
         };
 

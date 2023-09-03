@@ -5,6 +5,7 @@ precision highp int;
 
 % INCLUDES_COMMON_MATH %
 % INCLUDES_COMMON_CAMERA %
+% INCLUDES_COMMON_COLOR_SPACE %
 % INCLUDES_MATERIAL_DEPS %
 
 out vec4 fragment_color; 

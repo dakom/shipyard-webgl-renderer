@@ -4,7 +4,7 @@ use std::{io::Cursor, f32::consts::E};
 // https://github.com/mrdoob/three.js/issues/10652
 use crate::{prelude::*, image::{ImageLoader, ExrImage}};
 use anyhow::Ok;
-use awsm_web::{loaders::{image, fetch::fetch_url}, data::{ArrayBufferExt, TypedData}, canvas::get_2d_context, webgl::{WebGlTextureSource, TextureTarget, TextureOptions, PixelInternalFormat, PixelDataFormat, DataType, WebGlSpecific, TextureWrapTarget, TextureWrapMode, PartialWebGlTextures, TextureMinFilter, TextureMagFilter, TextureCubeFace, WebGl2Renderer, FrameBufferTarget, FrameBufferAttachment, FrameBufferTextureTarget, ResizeStrategy, BufferMask}};
+use awsm_web::{loaders::{image, fetch::fetch_url}, data::{ArrayBufferExt, TypedData}, canvas::get_2d_context, webgl::{WebGlTextureSource, TextureTarget, TextureOptions, PixelInternalFormat, PixelDataFormat, DataType, WebGlSpecific, TextureWrapTarget, TextureWrapMode, PartialWebGlTextures, TextureMinFilter, TextureMagFilter, TextureCubeFace, WebGl2Renderer, FrameBufferTarget, FrameBufferAttachment, FrameBufferTextureTarget, ResizeStrategy, BufferMask, BeginMode, SimpleTextureOptions}};
 use gltf::texture::MinFilter;
 use js_sys::{ArrayBuffer, Float32Array};
 use web_sys::{ImageData, HtmlCanvasElement, WebGl2RenderingContext};
@@ -12,6 +12,7 @@ use wasm_bindgen::{prelude::*, Clamped, JsCast};
 use std::rc::Rc;
 use std::cell::RefCell;
 
+#[derive(Debug, Clone)]
 pub struct CubeMap {
     pub fbo: Id,
     pub img_texture_id: Id,
@@ -21,7 +22,7 @@ pub struct CubeMap {
 impl CubeMap {
     pub fn new_panorama(renderer: &mut AwsmRenderer, img_texture_id: Id, img_width: usize, img_height: usize) -> Result<Self> {
         let face_size = img_height / 2;
-        let cubemap_texture_id = empty_cubemap_texture(renderer, face_size as u32, true)?;
+        let cubemap_texture_id = empty_cubemap_texture(renderer, face_size as u32, false)?;
         let fbo = renderer.gl.create_framebuffer()?;
 
         let gl = &mut renderer.gl;
@@ -38,12 +39,26 @@ impl CubeMap {
             gl.set_clear_color(1.0, 0.0, 0.0, 0.0);
             gl.clear(&[BufferMask::ColorBufferBit, BufferMask::DepthBufferBit]);
 
-            log::warn!("todo - render to texture for face {}", i);
+            gl.activate_program(renderer.shaders.programs.panorama_cubemap)?;
+            gl.activate_texture_sampler_name(img_texture_id, "u_panorama")?;
+
+            gl.upload_uniform_ival_name("u_current_face", i as i32)?;
+
+            //fullscreen triangle
+            gl.draw_arrays(BeginMode::Triangles, 0, 3);
         }
+
+        // https://webgl2fundamentals.org/webgl/lessons/webgl-cube-maps.html
+        let cubemap_texture = gl.get_texture(cubemap_texture_id)?;
+        gl.gl.awsm_bind_texture(TextureTarget::CubeMap, cubemap_texture);
+        gl.gl.generate_mipmap(TextureTarget::CubeMap as u32);
+        gl.gl.awsm_texture_set_min_filter(TextureTarget::CubeMap, TextureMinFilter::LinearMipMapLinear);
+
+        log::warn!("TODO for materials, show cubemap as IBL reflectance ... might not be exactly here though"); 
 
         //restore things
         gl.resize(ResizeStrategy::Viewport(viewport_before.0, viewport_before.1, viewport_before.2, viewport_before.3));
-        gl.release_texture_target(TextureTarget::Texture2d);
+        gl.release_texture_target(TextureTarget::CubeMap);
         gl.release_renderbuffer();
         gl.release_framebuffer(FrameBufferTarget::FrameBuffer);
         gl.release_framebuffer(FrameBufferTarget::ReadFrameBuffer);

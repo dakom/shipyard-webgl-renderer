@@ -1,4 +1,4 @@
-use crate::prelude::*; 
+use crate::{prelude::*, util::insert_at_first_blank_line}; 
 use awsm_web::webgl::{Id, WebGl2Renderer, ShaderType};
 use beach_map::{BeachMap, DefaultVersion};
 use rustc_hash::FxHashMap;
@@ -8,11 +8,15 @@ use super::{COMMON_CAMERA, COMMON_MATH, ShaderKey};
 const ENTRY_MESH:&'static str = include_str!("./glsl/vertex/mesh.vert");
 const ENTRY_QUAD_UNIT:&'static str = include_str!("./glsl/vertex/quad-unit.vert");
 const ENTRY_QUAD_FULLSCREEN:&'static str = include_str!("./glsl/vertex/quad-full-screen.vert");
+const ENTRY_FULLSCREEN_TRIANGLE:&'static str = include_str!("./glsl/vertex/fullscreen-triangle.vert");
+const ENTRY_SKYBOX:&'static str = include_str!("./glsl/vertex/skybox.vert");
 
 
 pub(crate) struct VertexCache {
     pub quad_unit: Id,
     pub quad_full_screen: Id,
+    pub fullscreen_triangle: Id,
+    pub skybox: Id,
     pub mesh: FxHashMap<ShaderKey, Id>,
 }
 
@@ -21,6 +25,8 @@ impl VertexCache {
         Ok(Self {
             quad_unit: gl.compile_shader(ENTRY_QUAD_UNIT, ShaderType::Vertex)?,
             quad_full_screen: gl.compile_shader(ENTRY_QUAD_FULLSCREEN, ShaderType::Vertex)?,
+            fullscreen_triangle: gl.compile_shader(ENTRY_FULLSCREEN_TRIANGLE, ShaderType::Vertex)?,
+            skybox: gl.compile_shader(ENTRY_SKYBOX, ShaderType::Vertex)?,
             mesh: FxHashMap::default()
         })
     }

@@ -5,7 +5,10 @@ use std::borrow::Cow;
 pub trait CameraBase {
     fn position(&self) -> Vector3<f64>;
 
-    fn projection_view_inverse(&self) -> &Matrix4<f64>; 
+    fn view_projection_inverse(&self) -> &Matrix4<f64>; 
+    // the inverse of the projected view matrix, but with the translation zeroed out of the view
+    // useful for skybox
+    fn view_projection_direction_inverse(&self) -> &Matrix4<f64>; 
 
     /// The view matrix
     fn view(&self) -> &Matrix4<f64>;

@@ -6,9 +6,9 @@ use crate::prelude::*;
 
 use super::cubemap::CubeMap;
 
-#[derive(Unique)]
+#[derive(Unique, Clone, Debug)]
 pub struct Skybox {
-    pub cubemap: CubeMap
+    pub cubemap: CubeMap,
 }
 
 impl Skybox {

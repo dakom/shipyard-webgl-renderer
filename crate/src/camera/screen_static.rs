@@ -5,7 +5,7 @@ use crate::camera::traits::*;
 pub struct ScreenStatic {
     view: Matrix4<f64>,
     projection: Matrix4<f64>,
-    inverse_proj_view: Matrix4<f64>,
+    projection_inverse: Matrix4<f64>,
     width: f64,
     height: f64,
     pub zoom: f64,
@@ -18,12 +18,12 @@ pub struct ScreenStatic {
 impl ScreenStatic {
     pub fn new(x: f64, y: f64, width: f64, height: f64, zoom: f64, near_plane: f64, far_plane: f64) -> Self {
 
-        let (projection, inverse_proj_view) = Self::build_projection(x, y, width, height, zoom, near_plane, far_plane);
+        let (projection, projection_inverse) = Self::build_projection(x, y, width, height, zoom, near_plane, far_plane);
 
         Self {
             view: Matrix4::<f64>::identity(),
             projection,
-            inverse_proj_view,
+            projection_inverse,
             width,
             height,
             zoom,
@@ -36,7 +36,7 @@ impl ScreenStatic {
 
     pub fn update_projection(&mut self) {
         
-        let (projection, inverse_proj_view) = Self::build_projection(
+        let (projection, projection_inverse) = Self::build_projection(
             self.x, 
             self.y, 
             self.width, 
@@ -47,7 +47,7 @@ impl ScreenStatic {
         );
 
         self.projection = projection;
-        self.inverse_proj_view = inverse_proj_view;
+        self.projection_inverse = projection_inverse;
     }
 
 
@@ -60,8 +60,10 @@ impl ScreenStatic {
         let bottom = ((-height / (2.0 * zoom)) + y);
         let top = ((height / (2.0 * zoom)) + y);
         //Matrix4::<f64>::new_perspective((width as f64 / height as f64), 45.0 * PI / 180.0, 0.01, DEFAULT_SCREEN_STATIC_FAR_PLANE)
+        let window = web_sys::window().unwrap_ext();
         let projection = Matrix4::<f64>::new_orthographic(left, right, bottom, top, near_plane, far_plane);
-        (projection, projection.try_inverse().unwrap_ext())
+        let inverse_projection = projection.try_inverse().unwrap_ext();
+        (projection, inverse_projection) 
 
     }
 
@@ -83,16 +85,20 @@ impl CameraBase for ScreenStatic {
         &self.projection
     }
 
-    fn projection_view_inverse(&self) -> &Matrix4<f64> {
-        &self.inverse_proj_view
+    fn view_projection_inverse(&self) -> &Matrix4<f64> {
+        &self.projection_inverse
+    }
+
+    fn view_projection_direction_inverse(&self) -> &Matrix4<f64> {
+        &self.projection_inverse
     }
 
     fn update_viewport(&mut self, width: u32, height: u32) {
         self.width = width as f64;
         self.height = height as f64;
-        let (projection, inverse_proj_view) = ScreenStatic::build_projection(self.x, self.y, width as f64, height as f64, self.zoom, self.near_plane, self.far_plane);
+        let (projection, projection_inverse) = ScreenStatic::build_projection(self.x, self.y, width as f64, height as f64, self.zoom, self.near_plane, self.far_plane);
 
         self.projection = projection;
-        self.inverse_proj_view = inverse_proj_view;
+        self.projection_inverse = projection_inverse;
     }
 }

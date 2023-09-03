@@ -44,3 +44,7 @@ The demo additionally uses [Dominator](https://github.com/Pauan/rust-dominator) 
 
 **Up and running**
 * `yarn serve:dev` from inside `demo/`
+
+# Media
+
+HDRIs from https://polyhaven.com/hdris

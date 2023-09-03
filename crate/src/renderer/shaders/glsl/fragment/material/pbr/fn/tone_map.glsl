@@ -1,9 +1,6 @@
 uniform float u_Exposure;
 
 
-const float GAMMA = 2.2;
-const float INV_GAMMA = 1.0 / GAMMA;
-
 
 // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 const mat3 ACESInputMat = mat3
@@ -22,27 +19,6 @@ const mat3 ACESOutputMat = mat3
     -0.07367, -0.00605,  1.07602
 );
 
-
-// linear to sRGB approximation
-// see http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
-vec3 linearTosRGB(vec3 color)
-{
-    return pow(color, vec3(INV_GAMMA));
-}
-
-
-// sRGB to linear approximation
-// see http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
-vec3 sRGBToLinear(vec3 srgbIn)
-{
-    return vec3(pow(srgbIn.xyz, vec3(GAMMA)));
-}
-
-
-vec4 sRGBToLinear(vec4 srgbIn)
-{
-    return vec4(sRGBToLinear(srgbIn.xyz), srgbIn.w);
-}
 
 
 // ACES tone map (faster approximation)
@@ -105,5 +81,5 @@ vec3 tone_map(vec3 color)
         color = toneMapACES_Hill(color);
     #endif
 
-    return linearTosRGB(color);
+    return linear_to_srgb(color);
 }

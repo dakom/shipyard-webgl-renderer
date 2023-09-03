@@ -4,11 +4,13 @@ use awsm_web::webgl::{Id, WebGl2Renderer, ShaderType};
 use beach_map::{BeachMap, DefaultVersion};
 use rustc_hash::FxHashMap;
 
-use super::{COMMON_CAMERA, COMMON_MATH, ShaderKey, ShaderKeyAlphaMode};
+use super::{COMMON_CAMERA, COMMON_MATH, COMMON_COLOR_SPACE, ShaderKey, ShaderKeyAlphaMode};
 
 const ENTRY_MESH_PBR:&'static str = include_str!("./glsl/fragment/mesh-pbr.frag");
 const ENTRY_QUAD_TEXTURE:&'static str = include_str!("./glsl/fragment/quad-texture.frag");
 const ENTRY_UNLIT_DIFFUSE:&'static str = include_str!("./glsl/fragment/unlit-diffuse.frag");
+const ENTRY_PANORAMA_TO_CUBEMAP:&'static str = include_str!("./glsl/fragment/panorama_to_cubemap.frag");
+const ENTRY_SKYBOX:&'static str = include_str!("./glsl/fragment/skybox.frag");
 
 const MESH_PBR_DATA_STRUCTS:&'static str = include_str!("./glsl/fragment/material/pbr/data/structs.glsl");
 const MESH_PBR_DATA_UNIFORMS:&'static str = include_str!("./glsl/fragment/material/pbr/data/uniforms.glsl");
@@ -27,6 +29,8 @@ const MESH_PBR_FN_TONE_MAP:&'static str = include_str!("./glsl/fragment/material
 pub(crate) struct FragmentCache {
     pub unlit_diffuse: Id,
     pub quad_texture: Id,
+    pub panorama_to_cubemap: Id,
+    pub skybox: Id,
     pub mesh: FxHashMap<ShaderKey, Id>,
 }
 
@@ -35,6 +39,11 @@ impl FragmentCache {
         Ok(Self {
             unlit_diffuse: gl.compile_shader(ENTRY_UNLIT_DIFFUSE, ShaderType::Fragment)?,
             quad_texture: gl.compile_shader(ENTRY_QUAD_TEXTURE, ShaderType::Fragment)?,
+            panorama_to_cubemap: gl.compile_shader(ENTRY_PANORAMA_TO_CUBEMAP, ShaderType::Fragment)?,
+            skybox: gl.compile_shader(&ENTRY_SKYBOX
+                .replace("% INCLUDES_COMMON_CAMERA %", COMMON_CAMERA)
+                .replace("% INCLUDES_COMMON_COLOR_SPACE %", COMMON_COLOR_SPACE)
+            , ShaderType::Fragment)?,
             mesh: FxHashMap::default()
         })
     }
@@ -57,6 +66,7 @@ impl ShaderKey {
         let mut res:String = ENTRY_MESH_PBR
             .replace("% INCLUDES_COMMON_MATH %", COMMON_MATH)
             .replace("% INCLUDES_COMMON_CAMERA %", COMMON_CAMERA)
+            .replace("% INCLUDES_COMMON_COLOR_SPACE %", COMMON_COLOR_SPACE)
             .replace("% INCLUDES_MATERIAL_DEPS %", &self.into_fragment_material_deps(max_lights)?);
 
         if max_lights > 0 {

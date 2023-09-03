@@ -11,3 +11,4 @@ pub mod animation;
 pub mod debug;
 pub mod cubemap;
 pub mod image;
+pub mod util;

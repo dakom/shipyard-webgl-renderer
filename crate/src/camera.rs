@@ -13,7 +13,8 @@ use shipyard_scenegraph::math::nalgebra_common::*;
 pub struct Camera {
     pub active: Option<CameraKind>,
     pub(crate) buffer_id: Id,
-    pub(crate) scratch_buffer:[f32;36],
+    // must be big enough to hold all ubo data
+    pub(crate) scratch_buffer:[f32;68],
 }
 
 pub enum CameraKind {
@@ -32,7 +33,7 @@ impl Camera {
         Ok(Self {
             active: None,
             buffer_id,
-            scratch_buffer: [0.0;36],
+            scratch_buffer: [0.0;68],
         })
     }
 
@@ -68,6 +69,7 @@ impl AwsmRenderer {
 
         Ok(())
     }
+
     pub fn update_camera_ubo(&mut self) -> Result<bool> {
         let gl = &mut self.gl;
         if let Some(active) = &mut self.camera.active {
@@ -75,12 +77,16 @@ impl AwsmRenderer {
                 CameraKind::ArcBall(camera) => {
                     camera.view().write_to_vf32(&mut self.camera.scratch_buffer[0..16]);
                     camera.projection().write_to_vf32(&mut self.camera.scratch_buffer[16..32]);
-                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[32..]);
+                    camera.view_projection_inverse().write_to_vf32(&mut self.camera.scratch_buffer[32..48]);
+                    camera.view_projection_direction_inverse().write_to_vf32(&mut self.camera.scratch_buffer[48..64]);
+                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[64..]);
                 }
                 CameraKind::ScreenStatic(camera) => {
                     camera.view().write_to_vf32(&mut self.camera.scratch_buffer[0..16]);
                     camera.projection().write_to_vf32(&mut self.camera.scratch_buffer[16..32]);
-                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[32..]);
+                    camera.view_projection_inverse().write_to_vf32(&mut self.camera.scratch_buffer[32..48]);
+                    camera.view_projection_direction_inverse().write_to_vf32(&mut self.camera.scratch_buffer[48..64]);
+                    camera.position().write_to_vf32(&mut self.camera.scratch_buffer[64..]);
                 }
             }
 
@@ -97,5 +103,4 @@ impl AwsmRenderer {
             Ok(false)
         }
     }
-
 }

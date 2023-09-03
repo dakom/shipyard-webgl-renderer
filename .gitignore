@@ -1,5 +1,6 @@
 dist
 glTF-Sample-Models
+demo/media/image/skybox/ignore
 ####### Build artifacts, logs, and third-party dependencies
 # Logs and env
 *.log

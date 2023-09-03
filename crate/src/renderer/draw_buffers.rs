@@ -40,7 +40,8 @@ pub struct DrawBuffers {
     pub clear_color: [f32;4],
     pub fbo_main_draw: Option<FrameBuffer>,
     pub fbo_main_multisample: Option<FrameBuffer>,
-    pub mode: DrawBufferMode
+    pub mode: DrawBufferMode,
+    pub quad: Quad,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -67,9 +68,8 @@ impl DestroyWithGl for DrawBuffers {
 impl DrawBuffers {
     pub fn new(renderer: &mut AwsmRenderer, mode: DrawBufferMode) -> Result<Self> {
         let (_, _, width, height) = renderer.gl.get_viewport();
-        let composite_program_id = renderer.shaders.programs.draw_buffers_quad_texture;
         let clear_color = renderer.config.clear_color;
-        //let quad = Quad::new(gl)?;
+        let quad = Quad::new(renderer)?;
 
         renderer.gl.set_clear_color(0.0, 0.0,0.0,0.0);
 
@@ -106,7 +106,8 @@ impl DrawBuffers {
             clear_color,
             fbo_main_draw: Some(fbo_main_draw),
             fbo_main_multisample,
-            mode
+            mode,
+            quad
         })
     }
 
