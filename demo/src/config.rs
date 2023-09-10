@@ -38,7 +38,7 @@ cfg_if::cfg_if! {
                 init_gltf: None,
                 gltf_url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0",
                 image_url: format!("/{}/media/image", URI_ROOT),
-                skybox_image: "scythian_tombs_2_2k.exr",
+                skybox_image: "scythian_tombs_2_1k.exr",
             }
         });
     }
