@@ -1,15 +1,15 @@
-[![Build Status](https://github.com/dakom/awsm-renderer/workflows/Test%2C%20Build%2C%20and%20Deploy/badge.svg)](https://github.com/dakom/awsm-renderer/actions)
+[![Build Status](https://github.com/dakom/shipyard-webgl-renderer/workflows/Test%2C%20Build%2C%20and%20Deploy/badge.svg)](https://github.com/dakom/shipyard-webgl-renderer/actions)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
 [![LICENSE](https://img.shields.io/badge/license-apache-blue.svg)](LICENSE-APACHE)
 [![Crates.io](https://img.shields.io/crates/v/awsm_renderer.svg)](https://crates.io/crates/awsm_renderer)
 [![Documentation](https://docs.rs/awsm_renderer/badge.svg)](https://docs.rs/awsm_renderer)
-[![Demo](https://img.shields.io/badge/demo-launch-yellow)](https://dakom.github.io/awsm-renderer)
+[![Demo](https://img.shields.io/badge/demo-launch-yellow)](https://dakom.github.io/shipyard-webgl-renderer)
 
-# Status
+# DEPRECATED
 
-Nothing to see here... YET!
+Left for historical and resarch purposes. Next relevant project may be at https://github.com/dakom/awsm-renderer
 
-# [DEMO](https://dakom.github.io/awsm-renderer)
+# [DEMO](https://dakom.github.io/shipyard-webgl-renderer)
 
 # What will it be?
 
