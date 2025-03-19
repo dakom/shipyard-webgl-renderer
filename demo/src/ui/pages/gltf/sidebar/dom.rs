@@ -131,9 +131,9 @@ impl Sidebar {
     fn render_skybox_checkbox(self: Rc<Self>) -> Dom {
         let state = self;
 
-        Checkbox::new("Skybox".to_string(), state.skybox_selected.load(Ordering::SeqCst), clone!(state => move |value| {
-            state.skybox_selected.store(value, Ordering::SeqCst);
-            state.clone().do_skybox();
+        Checkbox::new("Skybox".to_string(), state.page.skybox_selected.get(), clone!(state => move |value| {
+            state.page.skybox_selected.set(value);
+            state.page.render_skybox();
         })).render()
     }
 }

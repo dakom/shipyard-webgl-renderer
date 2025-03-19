@@ -11,30 +11,29 @@ precision highp int;
 out vec4 fragment_color; 
 
 void main() {
-    NormalInfo normal_info = get_normal_info();
+    Camera camera = get_camera();
+    NormalInfo normal_info = get_normal_info(camera);
     Material material = get_material(normal_info);
     Iridescence iridescence = get_iridescence(material, normal_info);
     LightOutput light_output = get_light_output();
 
     #ifdef IBL
-        set_ibl(material, iridescence, light_output);
+        set_ibl(camera, material, normal_info, iridescence, light_output);
     #endif
 
     #ifdef OCCLUSION_UV_MAP
         float ao = set_ambient_occlusion(light_output);
     #endif
 
-    // quick ambient hack
-    light_output.f_diffuse = vec3(0.3) * material.c_diff;
-    #ifdef MAX_LIGHTS
-        % INCLUDES_LIGHT_MAIN %
+    #ifndef IBL
+        // quick ambient hack
+        light_output.f_diffuse = vec3(0.3) * material.c_diff;
+        #ifdef MAX_LIGHTS
+            % INCLUDES_LIGHT_MAIN %
+        #endif
     #endif
 
     fragment_color = final_color(material, light_output);
-
-    //TODO: get rid of this
-    //fragment_color = vec4(1.0, 1.0, 1.0, 1.0); 
-
 
     
     #ifdef DEBUG_NORMALS

@@ -25,6 +25,7 @@ const MESH_PBR_FN_COLOR:&'static str = include_str!("./glsl/fragment/material/pb
 const MESH_PBR_FN_IRIDESCENCE:&'static str = include_str!("./glsl/fragment/material/pbr/fn/iridescence.glsl");
 const MESH_PBR_FN_AMBIENT_OCCLUSION:&'static str = include_str!("./glsl/fragment/material/pbr/fn/ambient_occlusion.glsl");
 const MESH_PBR_FN_TONE_MAP:&'static str = include_str!("./glsl/fragment/material/pbr/fn/tone_map.glsl");
+const MESH_PBR_FN_IBL:&'static str = include_str!("./glsl/fragment/material/pbr/fn/ibl.glsl");
 
 pub(crate) struct FragmentCache {
     pub unlit_diffuse: Id,
@@ -128,6 +129,10 @@ impl ShaderKey {
             res.push_str(&format!("#define MAX_LIGHTS {}\n", max_lights));
         }
 
+        if self.ibl {
+            res.push_str("#define IBL\n");
+        }
+
 
         // basic imports
         res.push_str(&format!(r#"
@@ -144,6 +149,10 @@ impl ShaderKey {
             {MESH_PBR_FN_COLOR}
             {MESH_PBR_FN_LIGHT}
         "#));
+
+        if self.ibl {
+            res.push_str(MESH_PBR_FN_IBL);
+        }
 
 
         Ok(res)

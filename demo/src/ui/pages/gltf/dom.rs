@@ -12,13 +12,20 @@ impl GltfPage {
                 Sidebar::new(state.clone()).render(),
                 Stage::new(state.clone()).render()
             ])
-            .child_signal(state.loader.is_loading().map(|loading| {
-                if loading {
-                    Some(Overlay::new(OverlayKind::Loading).render())
-                } else {
-                    None
-                }
-            }))
+            .child_signal(map_ref! {
+                let is_loading = state.loader.is_loading(),
+                let loading_kind = state.loading.signal_cloned()
+                    => match (*is_loading, loading_kind) {
+                        (false, _) => None,
+                        (true, kind) => Some(Overlay::new(
+                            OverlayKind::Loading(
+                            kind.as_ref().map(|kind| match kind {
+                                Loading::Gltf(id) => format!("Loading gltf: {:?}", id),
+                                Loading::Environment(s) => format!("Loading environment: {}", s)
+                            }))
+                        ))
+                    }
+            }.map(|loading| loading.map(|loading| loading.render())))
             .after_inserted(clone!(state => move |_| {
                 if state.gltf.lock_ref().is_none() && CONFIG.init_gltf.is_some() {
                     Route::Gltf(CONFIG.init_gltf).go_to_url();

@@ -15,7 +15,7 @@ use shipyard_scenegraph::{prelude::*, init::init_scenegraph};
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use std::ops::{Deref, DerefMut};
 use anyhow::Result;
-use crate::{prelude::*, camera::Camera, light::Lights, animation::clock::AnimationClock, cubemap::skybox::Skybox};
+use crate::{prelude::*, camera::Camera, light::Lights, animation::clock::AnimationClock, cubemap::{skybox::Skybox, environment::EnvironmentMap}};
 use self::{draw_buffers::{DrawBuffers, DrawBufferMode}, shaders::ShaderCache};
 use cleanup::DestroyWithGl;
 
@@ -28,6 +28,7 @@ pub struct AwsmRenderer {
     pub camera: Camera,
     pub lights: Lights,
     pub skybox:Option<Skybox>,
+    pub environment_map:Option<EnvironmentMap>,
     //pub programs: Programs,
     //pub vaos: Vaos,
     //pub buffers: Buffers,
@@ -88,7 +89,8 @@ impl AwsmRenderer {
             draw_buffers: None,
             camera,
             lights,
-            skybox: None
+            skybox: None,
+            environment_map: None
         })
     }
 

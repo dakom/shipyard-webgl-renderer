@@ -17,12 +17,13 @@ pub struct CubeMap {
     pub fbo: Id,
     pub img_texture_id: Id,
     pub cubemap_texture_id: Id,
+    pub face_size: u32
 }
 
 impl CubeMap {
     pub fn new_panorama(renderer: &mut AwsmRenderer, img_texture_id: Id, img_width: usize, img_height: usize) -> Result<Self> {
-        let face_size = img_height / 2;
-        let cubemap_texture_id = empty_cubemap_texture(renderer, face_size as u32, false)?;
+        let face_size = img_height as u32 / 2;
+        let cubemap_texture_id = empty_cubemap_texture(renderer, face_size, false)?;
         let fbo = renderer.gl.create_framebuffer()?;
 
         let gl = &mut renderer.gl;
@@ -34,7 +35,7 @@ impl CubeMap {
             gl.assign_framebuffer_texture_2d(fbo, cubemap_texture_id, FrameBufferTarget::FrameBuffer, FrameBufferAttachment::Color0, target);
             let texture = gl.get_texture(cubemap_texture_id)?;
             gl.gl.awsm_bind_texture(TextureTarget::CubeMap, &texture);
-            gl.resize(ResizeStrategy::ViewportSize(face_size as u32, face_size as u32));
+            gl.resize(ResizeStrategy::ViewportSize(face_size, face_size));
 
             gl.set_clear_color(1.0, 0.0, 0.0, 0.0);
             gl.clear(&[BufferMask::ColorBufferBit, BufferMask::DepthBufferBit]);
@@ -54,8 +55,6 @@ impl CubeMap {
         gl.gl.generate_mipmap(TextureTarget::CubeMap as u32);
         gl.gl.awsm_texture_set_min_filter(TextureTarget::CubeMap, TextureMinFilter::LinearMipMapLinear);
 
-        log::warn!("TODO for materials, show cubemap as IBL reflectance ... might not be exactly here though"); 
-
         //restore things
         gl.resize(ResizeStrategy::Viewport(viewport_before.0, viewport_before.1, viewport_before.2, viewport_before.3));
         gl.release_texture_target(TextureTarget::CubeMap);
@@ -68,6 +67,8 @@ impl CubeMap {
             fbo,
             img_texture_id,
             cubemap_texture_id,
+            face_size
+
         })
     }
 
@@ -93,6 +94,7 @@ impl CubeMap {
             _ => Err(anyhow!("invalid index {} for cubemap face", index)), 
         }
     }
+
 
 }
 

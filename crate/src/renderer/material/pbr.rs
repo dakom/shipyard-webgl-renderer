@@ -14,6 +14,7 @@ pub struct PbrMaterial {
     pub normal_texture: Option<TextureInfo>, 
     pub normal_texture_scale: Option<f32>, 
     pub alpha_mode: Option<AlphaMode>,
+    pub ibl: Option<Ibl>,
     pub double_sided: bool,
 }
 
@@ -22,6 +23,16 @@ pub enum AlphaMode {
     Opaque,
     Blend,
     Mask { cutoff: f32 }
+}
+
+#[derive(Clone, Debug)]
+pub struct Ibl {
+    pub lambertian: TextureInfo,
+    pub ggx: TextureInfo,
+    pub ggx_lut: TextureInfo,
+
+    pub charlie: Option<TextureInfo>,
+    pub charlie_lut: Option<TextureInfo>,
 }
 
 impl PbrMaterial {
@@ -47,6 +58,10 @@ impl PbrMaterial {
 
         if let Some(tex) = self.normal_texture.as_ref() {
             shader_key.normal_texture_uv_index = Some(tex.uv_index);
+        }
+
+        if let Some(ibl) = self.ibl.as_ref() {
+            shader_key.ibl = true; 
         }
     }
 }

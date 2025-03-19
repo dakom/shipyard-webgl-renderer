@@ -1,30 +1,30 @@
 
 vec3 getDiffuseLight(vec3 n)
 {
-    return texture(u_LambertianEnvSampler, u_EnvRotation * n).rgb * u_EnvIntensity;
+    return texture(u_lambertian_env_sampler, u_env_rotation * n).rgb * u_env_intensity;
 }
 
 
 vec4 getSpecularSample(vec3 reflection, float lod)
 {
-    return textureLod(u_GGXEnvSampler, u_EnvRotation * reflection, lod) * u_EnvIntensity;
+    return textureLod(u_ggx_env_sampler, u_env_rotation * reflection, lod) * u_env_intensity;
 }
 
 
 vec4 getSheenSample(vec3 reflection, float lod)
 {
-    return textureLod(u_CharlieEnvSampler, u_EnvRotation * reflection, lod) * u_EnvIntensity;
+    return textureLod(u_charlie_env_sampler, u_env_rotation * reflection, lod) * u_env_intensity;
 }
 
 
 vec3 getIBLRadianceGGX(vec3 n, vec3 v, float roughness, vec3 F0, float specularWeight)
 {
-    float NdotV = clampedDot(n, v);
-    float lod = roughness * float(u_MipCount - 1);
+    float NdotV = clamped_dot(n, v);
+    float lod = roughness * float(u_mip_count - 1);
     vec3 reflection = normalize(reflect(-v, n));
 
     vec2 brdfSamplePoint = clamp(vec2(NdotV, roughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    vec2 f_ab = texture(u_GGXLUT, brdfSamplePoint).rg;
+    vec2 f_ab = texture(u_ggx_lut, brdfSamplePoint).rg;
     vec4 specularSample = getSpecularSample(reflection, lod);
 
     vec3 specularLight = specularSample.rgb;
@@ -42,12 +42,12 @@ vec3 getIBLRadianceGGX(vec3 n, vec3 v, float roughness, vec3 F0, float specularW
 #ifdef IRIDESCENCE
 vec3 getIBLRadianceGGXIridescence(vec3 n, vec3 v, float roughness, vec3 F0, vec3 iridescenceFresnel, float iridescenceFactor, float specularWeight)
 {
-    float NdotV = clampedDot(n, v);
-    float lod = roughness * float(u_MipCount - 1);
+    float NdotV = clamped_dot(n, v);
+    float lod = roughness * float(u_mip_count - 1);
     vec3 reflection = normalize(reflect(-v, n));
 
     vec2 brdfSamplePoint = clamp(vec2(NdotV, roughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    vec2 f_ab = texture(u_GGXLUT, brdfSamplePoint).rg;
+    vec2 f_ab = texture(u_ggx_lut, brdfSamplePoint).rg;
     vec4 specularSample = getSpecularSample(reflection, lod);
 
     vec3 specularLight = specularSample.rgb;
@@ -89,9 +89,9 @@ vec3 getIBLVolumeRefraction(vec3 n, vec3 v, float perceptualRoughness, vec3 base
     vec3 attenuatedColor = applyVolumeAttenuation(transmittedLight, length(transmissionRay), attenuationColor, attenuationDistance);
 
     // Sample GGX LUT to get the specular component.
-    float NdotV = clampedDot(n, v);
+    float NdotV = clamped_dot(n, v);
     vec2 brdfSamplePoint = clamp(vec2(NdotV, perceptualRoughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    vec2 brdf = texture(u_GGXLUT, brdfSamplePoint).rg;
+    vec2 brdf = texture(u_ggx_lut, brdfSamplePoint).rg;
     vec3 specularColor = f0 * brdf.x + f90 * brdf.y;
 
     return (1.0 - specularColor) * attenuatedColor * baseColor;
@@ -102,9 +102,9 @@ vec3 getIBLVolumeRefraction(vec3 n, vec3 v, float perceptualRoughness, vec3 base
 // specularWeight is introduced with KHR_materials_specular
 vec3 getIBLRadianceLambertian(vec3 n, vec3 v, float roughness, vec3 diffuseColor, vec3 F0, float specularWeight)
 {
-    float NdotV = clampedDot(n, v);
+    float NdotV = clamped_dot(n, v);
     vec2 brdfSamplePoint = clamp(vec2(NdotV, roughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    vec2 f_ab = texture(u_GGXLUT, brdfSamplePoint).rg;
+    vec2 f_ab = texture(u_ggx_lut, brdfSamplePoint).rg;
 
     vec3 irradiance = getDiffuseLight(n);
 
@@ -129,9 +129,9 @@ vec3 getIBLRadianceLambertian(vec3 n, vec3 v, float roughness, vec3 diffuseColor
 // specularWeight is introduced with KHR_materials_specular
 vec3 getIBLRadianceLambertianIridescence(vec3 n, vec3 v, float roughness, vec3 diffuseColor, vec3 F0, vec3 iridescenceF0, float iridescenceFactor, float specularWeight)
 {
-    float NdotV = clampedDot(n, v);
+    float NdotV = clamped_dot(n, v);
     vec2 brdfSamplePoint = clamp(vec2(NdotV, roughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    vec2 f_ab = texture(u_GGXLUT, brdfSamplePoint).rg;
+    vec2 f_ab = texture(u_ggx_lut, brdfSamplePoint).rg;
 
     vec3 irradiance = getDiffuseLight(n);
 
@@ -162,42 +162,47 @@ vec3 getIBLRadianceLambertianIridescence(vec3 n, vec3 v, float roughness, vec3 d
 
 vec3 getIBLRadianceCharlie(vec3 n, vec3 v, float sheenRoughness, vec3 sheenColor)
 {
-    float NdotV = clampedDot(n, v);
-    float lod = sheenRoughness * float(u_MipCount - 1);
+    float NdotV = clamped_dot(n, v);
+    float lod = sheenRoughness * float(u_mip_count - 1);
     vec3 reflection = normalize(reflect(-v, n));
 
     vec2 brdfSamplePoint = clamp(vec2(NdotV, sheenRoughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
-    float brdf = texture(u_CharlieLUT, brdfSamplePoint).b;
+    float brdf = texture(u_charlie_lut, brdfSamplePoint).b;
     vec4 sheenSample = getSheenSample(reflection, lod);
 
     vec3 sheenLight = sheenSample.rgb;
     return sheenLight * sheenColor * brdf;
 }
 
-void set_ibl(Material material, Iridescence iridescence, inout LightOutput light_output) {
+void set_ibl(Camera camera, Material material, NormalInfo normal_info, Iridescence iridescence, inout LightOutput light_output) {
+    light_output.f_specular += getIBLRadianceGGX(normal_info.normal, normal_info.view, material.perceptual_roughness, material.f0, material.specular_weight);
+    light_output.f_diffuse += getIBLRadianceLambertian(normal_info.normal, normal_info.view, material.perceptual_roughness, material.c_diff, material.f0, material.specular_weight);
+}
+void _set_ibl(Camera camera, Material material, NormalInfo normal_info, Iridescence iridescence, inout LightOutput light_output) {
+
         // Calculate lighting contribution from image based lighting source (IBL)
 #ifdef IRIDESCENCE
-    light_output.f_specular += getIBLRadianceGGXIridescence(n, v, materialInfo.perceptualRoughness, materialInfo.f0, iridescenceFresnel, materialInfo.iridescenceFactor, materialInfo.specularWeight);
-    light_output.f_diffuse += getIBLRadianceLambertianIridescence(n, v, materialInfo.perceptualRoughness, materialInfo.c_diff, materialInfo.f0, iridescenceF0, materialInfo.iridescenceFactor, materialInfo.specularWeight);
+    light_output.f_specular += getIBLRadianceGGXIridescence(normal_info.normal, normal_info.view, material.perceptual_roughness, material.f0, iridescence.fresnel, material.iridescence_factor, material.specular_weight);
+    light_output.f_diffuse += getIBLRadianceLambertianIridescence(normal_info.normal, normal_info.view, material.perceptual_roughness, material.c_diff, material.f0, iridescence.f0, material.iridescence_factor, material.specular_weight);
 #else
-    light_output.f_specular += getIBLRadianceGGX(n, v, materialInfo.perceptualRoughness, materialInfo.f0, materialInfo.specularWeight);
-    light_output.f_diffuse += getIBLRadianceLambertian(n, v, materialInfo.perceptualRoughness, materialInfo.c_diff, materialInfo.f0, materialInfo.specularWeight);
+    light_output.f_specular += getIBLRadianceGGX(normal_info.normal, normal_info.view, material.perceptual_roughness, material.f0, material.specular_weight);
+    light_output.f_diffuse += getIBLRadianceLambertian(normal_info.normal, normal_info.view, material.perceptual_roughness, material.c_diff, material.f0, material.specular_weight);
 #endif
 
 #ifdef MATERIAL_CLEARCOAT
-    light_output.f_clearcoat += getIBLRadianceGGX(materialInfo.clearcoatNormal, v, materialInfo.clearcoatRoughness, materialInfo.clearcoatF0, 1.0);
+    light_output.f_clearcoat += getIBLRadianceGGX(material.clearcoat_normal, normal_info.view, material.clearcoat_roughness, material.clearcoat_F0, 1.0);
 #endif
 
 #ifdef MATERIAL_SHEEN
-    light_output.f_sheen += getIBLRadianceCharlie(n, v, materialInfo.sheenRoughnessFactor, materialInfo.sheenColorFactor);
+    light_output.f_sheen += getIBLRadianceCharlie(normal_info.normal, normal_info.view, material.sheen_roughness_factor, material.sheen_color_factor);
 #endif
 
 #ifdef TRANSMISSION
     light_output.f_transmission += getIBLVolumeRefraction(
-        n, v,
-        materialInfo.perceptualRoughness,
-        materialInfo.c_diff, materialInfo.f0, materialInfo.f90,
-        v_Position, u_ModelMatrix, u_ViewMatrix, u_ProjectionMatrix,
+        normal_info.normal, normal_info.view,
+        material.perceptual_roughness,
+        material.c_diff, material.f0, material.f90,
+        camera.position, u_model, camera.view, camera.projection,
         materialInfo.ior, materialInfo.thickness, materialInfo.attenuationColor, materialInfo.attenuationDistance);
 #endif
 }

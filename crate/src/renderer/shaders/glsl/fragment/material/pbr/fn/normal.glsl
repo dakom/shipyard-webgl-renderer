@@ -1,7 +1,6 @@
-NormalInfo get_normal_info()
+NormalInfo get_normal_info(Camera camera)
 {
 
-    Camera camera = getCamera();
     NormalInfo info;
 
     vec2 uv = get_normal_uv();

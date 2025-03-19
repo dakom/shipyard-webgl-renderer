@@ -12,7 +12,8 @@ keywords = ["webgl", "renderer", "3d", "graphics", "gamedev"]
 
 [dependencies]
 shipyard = { version = "0.6.2", default-features = false, features = ["proc","thread_local" ] }
-shipyard_scenegraph = { version = "0.6.0", default-features = false, features = ["nalgebra_glm_math"] }
+# shipyard_scenegraph = { version = "0.6.0", default-features = false, features = ["nalgebra_glm_math"] }
+shipyard_scenegraph = { path = "../../shipyard-scenegraph/crate", default-features = false, features = ["nalgebra_glm_math"] }
 nalgebra-glm = "0.17.0"
 nalgebra = "0.31.4"
 serde = "1.0.148"

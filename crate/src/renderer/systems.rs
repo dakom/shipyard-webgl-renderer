@@ -126,6 +126,16 @@ pub fn render_sys(
                                 gl.activate_texture_sampler_name(tex.id, "u_normal_sampler");
                                 gl.upload_uniform_fval_name("u_normal_texture_scale", pbr.normal_texture_scale.unwrap_or(1.0));
                             }
+                            if let Some(ibl) = &pbr.ibl {
+                                gl.activate_texture_sampler_name(ibl.lambertian.id, "u_lambertian_env_sampler");
+                                gl.activate_texture_sampler_name(ibl.ggx.id, "u_ggx_env_sampler");
+                                gl.activate_texture_sampler_name(ibl.ggx_lut.id, "u_ggx_lut");
+                                // TODO - get these correct values
+                                gl.upload_uniform_fval_name("u_env_intensity", 5.0);
+                                gl.upload_uniform_ival_name("u_mip_count", 0);
+                                // TODO: u_env_rotation is always assumed to be 90 degrees or something...
+                                // but it's 0 right now?
+                            }
                         }
                     }
 

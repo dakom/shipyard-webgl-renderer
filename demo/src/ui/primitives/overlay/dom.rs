@@ -34,9 +34,12 @@ impl Overlay {
 impl OverlayKind {
     pub fn render(&self) -> Dom {
         match self {
-            Self::Loading => {
+            Self::Loading(text) => {
                 html!("div", {
-                    .text("Please wait...")
+                    .text(match text {
+                        None => "Please wait...",
+                        Some(text) => text
+                    })
                 })
             }
         }

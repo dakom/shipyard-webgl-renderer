@@ -15,7 +15,7 @@ struct Camera
     vec3 position;
 };
 
-Camera getCamera() {
+Camera get_camera() {
     return Camera(
         camera.view,
         camera.projection,

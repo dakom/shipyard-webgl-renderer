@@ -36,7 +36,7 @@ void main() {
 
     % INCLUDES_MORPH_FN %
 
-    Camera camera = getCamera();
+    Camera camera = get_camera();
 
     mat4 mvp = (camera.projection * (camera.view * u_model));
 

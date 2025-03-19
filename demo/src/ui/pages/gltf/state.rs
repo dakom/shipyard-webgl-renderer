@@ -10,7 +10,15 @@ pub struct GltfPage {
     pub loader: AsyncLoader,
     pub pointer: Cell<Option<(i32,i32)>>,
     pub keys_down: RefCell<HashSet<String>>,
+    pub loading: Mutable<Option<Loading>>,
+    pub skybox_selected: Mutable<bool>,
     pub(super) _renderer: RefCell<Option<Rc<RefCell<AwsmRenderer>>>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum Loading {
+    Gltf(GltfId),
+    Environment(String),
 }
 
 impl GltfPage {
@@ -19,11 +27,13 @@ impl GltfPage {
             world: Mutable::new(None),
             gltf_set: Mutable::new(id.map(|id| id.find_set_label())),
             gltf: Mutable::new(id),
+            loader: AsyncLoader::new(),
             camera: Mutable::new(None),
             _renderer: RefCell::new(None),
             pointer: Cell::new(None),
-            loader: AsyncLoader::new(),
             keys_down: RefCell::new(HashSet::new()),
+            loading: Mutable::new(None),
+            skybox_selected: Mutable::new(crate::config::DEFAULT_SKYBOX),
 
         })
     }

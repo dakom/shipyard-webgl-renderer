@@ -58,6 +58,7 @@ pub struct ShaderKey {
     pub base_color_texture_uv_index: Option<u32>,
     pub emissive_texture_uv_index: Option<u32>,
     pub alpha_mode: ShaderKeyAlphaMode,
+    pub ibl: bool,
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]

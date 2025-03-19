@@ -52,6 +52,31 @@ impl AwsmRenderer {
             material.double_sided = true;
         }
 
+        if let Some(env_map) = self.environment_map.as_ref() {
+            material.ibl = Some(Ibl {
+                lambertian: TextureInfo {
+                    id: env_map.lambertian_id,
+                    uv_index: 0
+                },
+                ggx: TextureInfo {
+                    id: env_map.ggx_id,
+                    uv_index: 0
+                },
+                ggx_lut: TextureInfo {
+                    id: env_map.ggx_lut_id,
+                    uv_index: 0
+                },
+                charlie: env_map.charlie.as_ref().map(|charlie| TextureInfo {
+                    id: charlie.cubemap_texture_id,
+                    uv_index: 0
+                }),
+                charlie_lut: env_map.charlie_lut.as_ref().map(|charlie_lut| TextureInfo {
+                    id: charlie_lut.cubemap_texture_id,
+                    uv_index: 0
+                }),
+            });
+        }
+
 
         Ok(())
     }

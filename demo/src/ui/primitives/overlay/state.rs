@@ -1,6 +1,6 @@
 use crate::prelude::*; 
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Overlay {
     pub kind: OverlayKind
 }
@@ -11,7 +11,7 @@ impl Overlay {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum OverlayKind {
-    Loading,
+    Loading(Option<String>),
 }
